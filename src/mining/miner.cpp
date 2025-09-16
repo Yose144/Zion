@@ -94,6 +94,12 @@ public:
         running_ = true;
         total_hashes_ = 0;
         blocks_mined_ = 0;
+        mobile_mode_ = mobile;
+        // Init per-thread stats
+        thread_total_hashes_.reset(new std::atomic<uint64_t>[thread_count_]);
+        thread_accepted_.reset(new std::atomic<uint64_t>[thread_count_]);
+        thread_rejected_.reset(new std::atomic<uint64_t>[thread_count_]);
+        for (int i=0;i<thread_count_;++i){ thread_total_hashes_[i].store(0); thread_accepted_[i].store(0); thread_rejected_[i].store(0);} 
 
         if (mobile) {
             // Mobilní optimalizace: light mode uživatel volí parametrem programu; zde snížíme chunk a vlákna případně mimo
@@ -110,7 +116,7 @@ public:
         std::string worker_pass = pass;
 
         // Stav aktuální práce
-        struct PoolJob { std::string job_id; Hash prev; uint32_t target_bits=1; uint32_t height=1; uint64_t version=0; };
+        struct PoolJob { std::string job_id; Hash prev; uint32_t target_bits=1; uint32_t height=1; uint64_t version=0; std::string extranonce_hex; };
         PoolJob job;
         std::mutex job_mx;
         std::condition_variable job_cv;
@@ -125,9 +131,10 @@ public:
                 if (!logged) {
                     if (pool_login(host, port, worker_name, worker_pass, job_json)) {
                         std::string jid; Hash prev{}; uint32_t bits=1, h=1;
-                        if (parse_job_json(job_json, jid, prev, bits, h)) {
+                        std::string ex;
+                        if (parse_job_json(job_json, jid, prev, bits, h, &ex)) {
                             std::lock_guard<std::mutex> lk(job_mx);
-                            job.job_id = jid; job.prev = prev; job.target_bits = bits; job.height = h; job.version++;
+                            job.job_id = jid; job.prev = prev; job.target_bits = bits; job.height = h; job.extranonce_hex = ex; job.version++;
                             have_job = true; job_version.store(job.version); job_cv.notify_all();
                             logged = true;
                         }
@@ -135,12 +142,13 @@ public:
                 } else {
                     if (pool_get_job(host, port, job_json) || pool_login(host, port, worker_name, worker_pass, job_json)) {
                         std::string jid; Hash prev{}; uint32_t bits=1, h=1;
-                        if (parse_job_json(job_json, jid, prev, bits, h)) {
+                        std::string ex;
+                        if (parse_job_json(job_json, jid, prev, bits, h, &ex)) {
                             bool changed=false;
                             {
                                 std::lock_guard<std::mutex> lk(job_mx);
-                                if (job.job_id != jid || std::memcmp(prev.data(), job.prev.data(), job.prev.size()) != 0 || job.target_bits != bits || job.height != h) {
-                                    job.job_id = jid; job.prev = prev; job.target_bits = bits; job.height = h; job.version++;
+                                if (job.job_id != jid || std::memcmp(prev.data(), job.prev.data(), job.prev.size()) != 0 || job.target_bits != bits || job.height != h || job.extranonce_hex != ex) {
+                                    job.job_id = jid; job.prev = prev; job.target_bits = bits; job.height = h; job.extranonce_hex = ex; job.version++;
                                     changed = true;
                                 }
                             }
@@ -154,7 +162,7 @@ public:
 
         // Worker vlákna – rozdělení nonce prostoru start=stride-offset
         auto worker = [this, &host, port, &job, &job_mx, &job_cv, &job_version](int tid, int stride) {
-            const uint64_t CHUNK = 200'000ULL; // menší dávky pro plynulejší hashrate a rychlejší reakci na nový job
+            const uint64_t CHUNK = mobile_mode_ ? 50'000ULL : 200'000ULL; // mobil menší dávky
             uint64_t last_seen = 0;
             while (running_) {
                 // Počkat na dostupnou práci nebo změnu jobu
@@ -170,6 +178,15 @@ public:
                 const PublicKey& recipient = has_payout_address_ ? payout_public_key_ : miner_public_key_;
                 auto coinbase_tx = std::make_shared<Transaction>(Transaction::create_coinbase(recipient, reward));
                 Block blk(job.height, job.prev);
+                // Embed extranonce: append zero-amount output with recipient containing extranonce bytes
+                if (!job.extranonce_hex.empty()) {
+                    PublicKey tag{}; tag.fill(0);
+                    // parse hex (up to 32 bytes)
+                    auto hexval=[&](char c){ if(c>='0'&&c<='9')return c-'0'; if(c>='a'&&c<='f')return c-'a'+10; if(c>='A'&&c<='F')return c-'A'+10; return -1; };
+                    size_t bytes = std::min<size_t>(job.extranonce_hex.size()/2, tag.size());
+                    for (size_t i=0;i<bytes;i++){ int hi=hexval(job.extranonce_hex[2*i]); int lo=hexval(job.extranonce_hex[2*i+1]); if(hi<0||lo<0){ bytes=i; break; } tag[i]=(uint8_t)((hi<<4)|lo); }
+                    coinbase_tx->add_output(TxOutput(0, tag));
+                }
                 blk.addTransaction(coinbase_tx);
 
                 // Těžit v dávkách s rozestupem nonce
@@ -177,14 +194,17 @@ public:
                     uint64_t attempts = 0;
                     bool found = blk.mine((uint32_t)job.target_bits, &attempts, (uint32_t)tid, (uint32_t)stride, CHUNK);
                     total_hashes_ += attempts;
+                    thread_total_hashes_[tid].fetch_add(attempts, std::memory_order_relaxed);
                     if (found) {
                         // Odeslat share
                         auto bytes = blk.serialize();
                         std::string hex = to_hex(bytes);
                         if (pool_submit_block(host, port, job.job_id, hex)) {
                             blocks_mined_++;
+                            thread_accepted_[tid].fetch_add(1, std::memory_order_relaxed);
                             std::cout << "[POOL] Share odeslán a přijat (T" << tid << ")" << std::endl;
                         } else {
+                            thread_rejected_[tid].fetch_add(1, std::memory_order_relaxed);
                             std::cerr << "[POOL] Share zamítnut (T" << tid << ")" << std::endl;
                         }
                         break; // po nalezení se pravděpodobně změní práce, počkáme na fetcher
@@ -224,6 +244,13 @@ private:
     std::atomic<bool> running_;
     std::atomic<uint64_t> blocks_mined_;
     std::atomic<uint64_t> total_hashes_;
+
+    // Per-thread stats (arrays to avoid vector moving atomics)
+    std::unique_ptr<std::atomic<uint64_t>[]> thread_total_hashes_;
+    std::unique_ptr<std::atomic<uint64_t>[]> thread_accepted_;
+    std::unique_ptr<std::atomic<uint64_t>[]> thread_rejected_;
+
+    bool mobile_mode_ = false;
     
     PrivateKey miner_private_key_;
     PublicKey miner_public_key_;
@@ -291,13 +318,17 @@ private:
     }
 
     // Jednoduché parsování JSONu z poolu (bez knihoven)
-    static bool parse_job_json(const std::string& json, std::string& job_id, Hash& prev_hash, uint32_t& target_bits, uint32_t& height) {
+    static bool parse_job_json(const std::string& json, std::string& job_id, Hash& prev_hash, uint32_t& target_bits, uint32_t& height, std::string* extranonce_hex=nullptr) {
         extract_json_string_field(json, "job_id", job_id);
         std::string prev_hex; extract_json_string_field(json, "prev_hash", prev_hex);
         if (!hex_to_hash(prev_hex, prev_hash)) return false;
         uint32_t bits=0, h=0; extract_json_number_field(json, "target_bits", bits); extract_json_number_field(json, "height", h);
         target_bits = bits ? bits : 1; height = h ? h : 1;
-        // extranonce is accepted but currently unused at coinbase level
+        if (extranonce_hex) {
+            std::string ex;
+            extract_json_string_field(json, "extranonce", ex);
+            *extranonce_hex = ex;
+        }
         return true;
     }
 
@@ -392,6 +423,8 @@ private:
 
     void stats_thread() {
         uint64_t last_total = 0;
+        std::vector<uint64_t> last_thread_totals;
+        last_thread_totals.assign(thread_count_, 0);
         auto last_time = std::chrono::steady_clock::now();
         while (running_) {
             std::this_thread::sleep_for(std::chrono::seconds(10));
@@ -401,12 +434,18 @@ private:
             uint64_t cur_total = total_hashes_.load();
             uint64_t rate = (cur_total - last_total) / (uint64_t)secs;
             last_total = cur_total;
-            last_time = now;
-            if (running_) {
-                std::cout << "📊 Statistiky: " 
-                         << blocks_mined_.load() << " bloků vytěženo, "
-                         << format_hashrate(rate) << std::endl;
+            if (!running_) break;
+            std::cout << "\n📊 Souhrn: " << blocks_mined_.load() << " bloků, " << format_hashrate(rate) << std::endl;
+            // per-thread
+            for (int i = 0; i < thread_count_; ++i) {
+                uint64_t tt = thread_total_hashes_[i].load(std::memory_order_relaxed);
+                uint64_t tr = (tt - last_thread_totals[i]) / (uint64_t)secs;
+                last_thread_totals[i] = tt;
+                uint64_t acc = thread_accepted_[i].load(std::memory_order_relaxed);
+                uint64_t rej = thread_rejected_[i].load(std::memory_order_relaxed);
+                std::cout << "  T" << i << ": " << format_hashrate(tr) << ", A/R=" << acc << "/" << rej << std::endl;
             }
+            last_time = now;
         }
     }
     

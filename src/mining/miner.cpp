@@ -133,8 +133,7 @@ public:
                         }
                     }
                 } else {
-                    // Re-login each time to keep it stateless per request
-                    if (pool_login(host, port, worker_name, worker_pass, job_json)) {
+                    if (pool_get_job(host, port, job_json) || pool_login(host, port, worker_name, worker_pass, job_json)) {
                         std::string jid; Hash prev{}; uint32_t bits=1, h=1;
                         if (parse_job_json(job_json, jid, prev, bits, h)) {
                             bool changed=false;
@@ -298,6 +297,7 @@ private:
         if (!hex_to_hash(prev_hex, prev_hash)) return false;
         uint32_t bits=0, h=0; extract_json_number_field(json, "target_bits", bits); extract_json_number_field(json, "height", h);
         target_bits = bits ? bits : 1; height = h ? h : 1;
+        // extranonce is accepted but currently unused at coinbase level
         return true;
     }
 

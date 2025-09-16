@@ -265,7 +265,8 @@ int main(int argc, char* argv[]) {
             oss << "{\"job_id\":\"" << js.job_id << "\",";
             oss << "\"prev_hash\":\"" << tohex(js.prev) << "\",";
             oss << "\"target_bits\":" << js.bits << ",";
-            oss << "\"height\":" << js.height << "}";
+            oss << "\"height\":" << js.height << ",";
+            oss << "\"extranonce\":\"0000000000000000\"}";
             return oss.str();
         };
         pcb.submit_share = [&blockchain, &p2p](const std::string& job_id, const std::string& nonce_hex, const std::string& result_hex, const std::string& worker) -> bool {

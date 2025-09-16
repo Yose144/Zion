@@ -1,0 +1,38 @@
+# Build artifacts
+build/
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.dylib
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Logs
+*.log
+logs/
+/daemon_test.log
+/miner_test.log
+
+# Runtime data
+/ test_data/
+/ test_wallets/
+.zion/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor configs
+.vscode/
+.idea/
+*.swp
+
+# Docker volumes (optional)
+docker/seed1/data/
+docker/seed1/logs/
+docker/seed2/data/
+docker/seed2/logs/

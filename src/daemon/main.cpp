@@ -227,33 +227,49 @@ int main(int argc, char* argv[]) {
     if (cfg.pool_enable) {
         PoolConfig pcfg; pcfg.port = cfg.pool_port;
         PoolServer::Callbacks pcb;
-        pcb.get_work = [&blockchain]() -> std::string {
-            // Simple work: prev_hash = hash posledního bloku, target_bits = current difficulty
+        // jednoduchý job state
+        struct JobState { Hash prev{}; uint32_t bits=1; uint32_t height=1; std::string job_id="0"; };
+        static JobState js;
+        auto tohex=[&](const Hash& h){ static const char* x="0123456789abcdef"; std::string s; s.reserve(64); for(auto b:h){ s.push_back(x[b>>4]); s.push_back(x[b&0xF]); } return s; };
+        auto refresh_job = [&](){
             auto latest = blockchain.getLatestBlock();
-            Hash prev{}; if (latest) prev = latest->calculateHash();
-            auto tohex=[&](const Hash& h){ static const char* x="0123456789abcdef"; std::string s; s.reserve(64); for(auto b:h){ s.push_back(x[b>>4]); s.push_back(x[b&0xF]); } return s; };
+            if (latest) js.prev = latest->calculateHash(); else js.prev.fill(0);
+            js.bits = blockchain.getDifficulty();
+            if (js.bits == 0) js.bits = 1;
+            js.height = blockchain.getHeight() + 1;
+            js.job_id = std::to_string(js.height) + "-" + tohex(js.prev).substr(0,8);
+        };
+        refresh_job();
+        pcb.login = [&](const std::string& worker, const std::string& pass) -> std::string {
+            (void)worker; (void)pass; // žádná autentizace pro teď
+            refresh_job();
             std::ostringstream oss;
-            oss << "{\"prev_hash\":\"" << tohex(prev) << "\",";
-            oss << "\"target_bits\":" << blockchain.getDifficulty() << ",";
-            oss << "\"height\":" << blockchain.getHeight()+1 << ",";
-            oss << "\"extra_nonce\":\"00000001\"}";
+            oss << "{\"job_id\":\"" << js.job_id << "\",";
+            oss << "\"prev_hash\":\"" << tohex(js.prev) << "\",";
+            oss << "\"target_bits\":" << js.bits << ",";
+            oss << "\"height\":" << js.height << "}";
             return oss.str();
         };
-        pcb.submit_share = [&blockchain, &p2p](const std::string& submit_json) -> bool {
-            // Na demo úrovni neparsujeme JSON do hloubky; očekáváme kompletní blok jako hex pole "block_hex"
-            auto pos = submit_json.find("block_hex\":\"");
-            if (pos == std::string::npos) return false;
-            pos += 12; auto end = submit_json.find('"', pos); if (end==std::string::npos) return false;
-            std::string block_hex = submit_json.substr(pos, end-pos);
-            // zkusit přidat blok přes stejné cesty jako P2P
-            std::vector<uint8_t> data(block_hex.size()/2);
+        pcb.get_job = [&]() -> std::string {
+            refresh_job();
+            std::ostringstream oss;
+            oss << "{\"job_id\":\"" << js.job_id << "\",";
+            oss << "\"prev_hash\":\"" << tohex(js.prev) << "\",";
+            oss << "\"target_bits\":" << js.bits << ",";
+            oss << "\"height\":" << js.height << "}";
+            return oss.str();
+        };
+        pcb.submit_share = [&blockchain, &p2p](const std::string& job_id, const std::string& nonce_hex, const std::string& result_hex, const std::string& worker) -> bool {
+            (void)job_id; (void)nonce_hex; (void)worker;
+            // result_hex je celé block_hex
+            if (result_hex.size() % 2 != 0) return false;
+            std::vector<uint8_t> data(result_hex.size()/2);
             auto hexval=[&](char c){ if(c>='0'&&c<='9')return c-'0'; if(c>='a'&&c<='f')return c-'a'+10; if(c>='A'&&c<='F')return c-'A'+10; return 0; };
-            for(size_t i=0;i<data.size();++i){ data[i]=(uint8_t)((hexval(block_hex[2*i])<<4)|hexval(block_hex[2*i+1])); }
+            for(size_t i=0;i<data.size();++i){ data[i]=(uint8_t)((hexval(result_hex[2*i])<<4)|hexval(result_hex[2*i+1])); }
             auto up = Block::deserialize(data);
             if (!up) return false;
             std::shared_ptr<Block> blk(std::move(up));
             if (!blockchain.addBlock(blk)) return false;
-            // broadcast INV BLOCK
             auto h = blk->calculateHash(); static const char* x="0123456789abcdef"; std::string hash_hex; hash_hex.reserve(64); for(auto b:h){ hash_hex.push_back(x[b>>4]); hash_hex.push_back(x[b&0xF]); }
             p2p.broadcast_inv("BLOCK", hash_hex, -1);
             return true;

@@ -79,7 +79,8 @@ Hash Block::calculateMerkleRoot() const {
     return tree[0];
 }
 
-bool Block::mine(uint32_t difficulty) {
+bool Block::mine(uint32_t difficulty, uint64_t* attempts_out,
+                  uint32_t start_nonce, uint32_t step, uint64_t max_attempts) {
     header_.difficulty = difficulty;
     header_.merkle_root = calculateMerkleRoot();
     
@@ -89,25 +90,42 @@ bool Block::mine(uint32_t difficulty) {
         return false;
     }
     
+    if (attempts_out) *attempts_out = 0;
+    if (step == 0) step = 1;
+    
     // Mining loop
-    uint32_t nonce = 0;
-    while (nonce < UINT32_MAX) {
+    uint64_t attempts = 0;
+    uint32_t nonce = start_nonce;
+    while (true) {
         header_.nonce = nonce;
         Hash block_hash = calculateHash();
         
         // Use RandomX to hash the block hash
         Hash pow_hash = randomx.hash(block_hash.data(), block_hash.size());
         
+        attempts++;
+        if (attempts_out) *attempts_out = attempts;
+        
         if (checkRandomXProof(pow_hash, difficulty)) {
             return true;
         }
         
-        nonce++;
-        
-        // Print mining progress every 10000 nonces
-        if (nonce % 10000 == 0) {
-            std::cout << "Mining... nonce: " << nonce << std::endl;
+        // Stop if max_attempts reached
+        if (max_attempts > 0 && attempts >= max_attempts) {
+            break;
         }
+        
+        // Increment nonce with stride; stop on wrap
+        uint32_t next = nonce + step;
+        if (next < nonce) { // wrap detected
+            break;
+        }
+        nonce = next;
+        
+        // Print mining progress occasionally (optional / debug)
+        // if ((attempts % 1000000ULL) == 0ULL) {
+        //     std::cout << "Mining... attempts: " << attempts << std::endl;
+        // }
     }
     
     return false;

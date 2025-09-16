@@ -39,7 +39,12 @@ public:
     void addTransaction(std::shared_ptr<Transaction> tx);
     
     // Mining functions
-    bool mine(uint32_t difficulty);
+    // Optional attempts_out counts the number of nonce attempts performed
+    // start_nonce: starting nonce value for this attempt range
+    // step: increment step (for multi-thread stride)
+    // max_attempts: if > 0, stop after this many attempts (useful for yielding)
+    bool mine(uint32_t difficulty, uint64_t* attempts_out = nullptr,
+              uint32_t start_nonce = 0, uint32_t step = 1, uint64_t max_attempts = 0);
     Hash calculateHash() const;
     Hash calculateMerkleRoot() const;
     

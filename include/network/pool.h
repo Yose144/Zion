@@ -14,10 +14,10 @@ struct PoolConfig {
 class PoolServer {
 public:
     struct Callbacks {
-        // returns JSON string with work (prev_hash, target_bits, height, extra_nonce)
-        std::function<std::string()> get_work;
-        // submit share: returns true if block is valid and accepted
-        std::function<bool(const std::string& submit_json)> submit_share;
+        // stratum-like callbacks
+        std::function<std::string(const std::string& worker, const std::string& pass)> login; // return job JSON or error
+        std::function<std::string()> get_job; // return current job JSON
+        std::function<bool(const std::string& job_id, const std::string& nonce_hex, const std::string& result_hex, const std::string& worker)> submit_share;
     };
 
     PoolServer(const PoolConfig& cfg, Callbacks cbs);

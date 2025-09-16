@@ -13,6 +13,12 @@ workflows:
     description: Run the full test suite
     dir: .
 
+  - name: Capture session log
+    command: bash scripts/generate_session_log.sh --title "Warp capture" --notes "Automated from Warp workflow"
+    tags: [docs, warp]
+    description: Create a dated session log under docs/sessions/
+    dir: .
+
   - name: Run daemon (mainnet)
     command: ./build/ziond --config=./config/mainnet.conf
     tags: [daemon, mainnet]

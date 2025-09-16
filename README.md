@@ -69,3 +69,13 @@ make
 ## Licencia
 
 MIT License
+
+## Session logs (Warp)
+
+Dated session logs are stored under docs/sessions/YYYY-MM-DD/session-HHMMSS.md.
+
+Generate a new log:
+```bash
+bash scripts/generate_session_log.sh --title "My work" --notes "what I did"
+```
+Or via Warp Workflows: "Capture session log".

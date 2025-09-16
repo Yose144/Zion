@@ -95,11 +95,12 @@ static bool parse_json_rpc(const std::string& json, std::string& method, std::st
     return !method.empty();
 }
 
-static std::pair<std::string,std::string> parse_login_params(const std::string& params) {
-    std::string user, pass;
+static std::tuple<std::string,std::string,std::string> parse_login_params(const std::string& params) {
+    std::string user, pass, agent;
     extract_json_string_field(params, "login", user);
     extract_json_string_field(params, "pass", pass);
-    return {user, pass};
+    extract_json_string_field(params, "agent", agent);
+    return {user, pass, agent};
 }
 
 static std::tuple<std::string,std::string,std::string> parse_submit_params(const std::string& params) {
@@ -181,7 +182,8 @@ void PoolServer::handle_client(int fd) {
         }
         
         if (method == "login") {
-            auto [user, pass] = parse_login_params(params);
+            auto [user, pass, agent] = parse_login_params(params);
+            (void)agent;
             if (cbs_.login) {
                 std::string result = cbs_.login(user, pass);
                 if (!result.empty() && result[0] == '{') {

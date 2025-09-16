@@ -81,6 +81,8 @@ bool load_node_config(const std::string& path, NodeConfig& out, std::string& err
         } else if (section == "pool") {
             if (key == "enable_pool") out.pool_enable = (val == "true" || val == "1");
             else if (key == "pool_port") { try { out.pool_port = static_cast<uint16_t>(std::stoul(val)); } catch (...) {} }
+            else if (key == "pool_require_auth") out.pool_require_auth = (val == "true" || val == "1");
+            else if (key == "pool_password") out.pool_password = val;
         } else if (section == "mempool") {
             if (key == "mempool_min_fee") { try { out.mempool_min_fee = std::stoull(val); } catch (...) {} }
         }

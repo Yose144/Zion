@@ -25,6 +25,8 @@ struct NodeConfig {
     // Pool settings
     bool pool_enable = false;
     uint16_t pool_port = 3333;
+    bool pool_require_auth = false;
+    std::string pool_password;
 
     // Mempool
     uint64_t mempool_min_fee = 0; // microzions per KB

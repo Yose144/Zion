@@ -88,17 +88,26 @@ public:
     }
 
     // Jednoduchý pool klient – single-threaded smyčka
-    void start_pool_mining(const std::string& host, int port, const std::string& payout_address) {
+    void start_pool_mining(const std::string& host, int port, const std::string& payout_address, const std::string& user = std::string(), const std::string& pass = std::string(), bool mobile = false) {
         (void)payout_address; // payout se propisuje už přes set_payout_public_key, pokud byl zadán
         std::cout << "Spouštím těžbu v režimu pool klienta proti " << host << ":" << port << std::endl;
         running_ = true;
         total_hashes_ = 0;
         blocks_mined_ = 0;
 
-        // Worker identifikátor (z miner_public_key)
-        auto tohex_byte = [](uint8_t b){ static const char* x="0123456789abcdef"; std::string s; s.push_back(x[b>>4]); s.push_back(x[b&0xF]); return s; };
-        std::string worker_name = "miner-";
-        for (int i=0;i<4;i++) worker_name += tohex_byte(miner_public_key_[i]);
+        if (mobile) {
+            // Mobilní optimalizace: light mode uživatel volí parametrem programu; zde snížíme chunk a vlákna případně mimo
+        }
+
+        // Worker identifikátor
+        std::string worker_name = user;
+        if (worker_name.empty()) {
+            // fallback z miner_public_key
+            auto tohex_byte = [](uint8_t b){ static const char* x="0123456789abcdef"; std::string s; s.push_back(x[b>>4]); s.push_back(x[b&0xF]); return s; };
+            worker_name = "miner-";
+            for (int i=0;i<4;i++) worker_name += tohex_byte(miner_public_key_[i]);
+        }
+        std::string worker_pass = pass;
 
         // Stav aktuální práce
         struct PoolJob { std::string job_id; Hash prev; uint32_t target_bits=1; uint32_t height=1; uint64_t version=0; };
@@ -109,12 +118,12 @@ public:
         std::atomic<bool> have_job{false};
 
         // Thread pro načítání práce
-        auto fetcher = [this, &host, port, &worker_name, &job, &job_mx, &job_cv, &job_version, &have_job]() {
+        auto fetcher = [this, &host, port, &worker_name, &worker_pass, &job, &job_mx, &job_cv, &job_version, &have_job]() {
             bool logged=false;
             while (running_) {
                 std::string job_json;
                 if (!logged) {
-                    if (pool_login(host, port, worker_name, "", job_json)) {
+                    if (pool_login(host, port, worker_name, worker_pass, job_json)) {
                         std::string jid; Hash prev{}; uint32_t bits=1, h=1;
                         if (parse_job_json(job_json, jid, prev, bits, h)) {
                             std::lock_guard<std::mutex> lk(job_mx);
@@ -125,7 +134,7 @@ public:
                     }
                 } else {
                     // Re-login each time to keep it stateless per request
-                    if (pool_login(host, port, worker_name, "", job_json)) {
+                    if (pool_login(host, port, worker_name, worker_pass, job_json)) {
                         std::string jid; Hash prev{}; uint32_t bits=1, h=1;
                         if (parse_job_json(job_json, jid, prev, bits, h)) {
                             bool changed=false;
@@ -313,7 +322,7 @@ private:
 
     // Stratum-like JSON-RPC client helpers
     bool pool_login(const std::string& host, int port, const std::string& worker, const std::string& pass, std::string& job_json) {
-        std::ostringstream req; req << "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"login\",\"params\":{\"login\":\"" << worker << "\",\"pass\":\"" << pass << "\"}}";
+        std::ostringstream req; req << "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"login\",\"params\":{\"login\":\"" << worker << "\",\"pass\":\"" << pass << "\",\"agent\":\"zion-miner/1.0\"}}";
         std::string resp;
         if (!tcp_send_recv_line(host, port, req.str(), resp)) return false;
         // Extract result object
@@ -466,6 +475,7 @@ void signal_handler(int signal) {
 }
 
 int main(int argc, char* argv[]) {
+    // Heuristika pro mobilní zařízení (např. iOS/Android přes termux) – nyní jen přepínač --mobile
     std::cout << "ZION Cryptocurrency Miner v"
               << static_cast<int>(zion::ZION_VERSION_MAJOR) << "."
               << static_cast<int>(zion::ZION_VERSION_MINOR) << "."
@@ -474,7 +484,7 @@ int main(int argc, char* argv[]) {
     // Parse command line arguments
     int thread_count = std::thread::hardware_concurrency();
     bool light_mode = false; // pokud true, nepoužívat dataset (rychlejší start, menší RAM)
-    std::string pool_host; int pool_port = 0; std::string payout_address;
+    std::string pool_host; int pool_port = 0; std::string payout_address; std::string user; std::string pass; bool mobile=false;
     
     for (int i = 1; i < argc; ++i) {
         if (std::string(argv[i]) == "--threads" && i + 1 < argc) {
@@ -488,6 +498,13 @@ int main(int argc, char* argv[]) {
             if (pos != std::string::npos) { pool_host = hp.substr(0,pos); pool_port = std::atoi(hp.substr(pos+1).c_str()); }
         } else if (std::string(argv[i]) == "--address" && i + 1 < argc) {
             payout_address = argv[++i];
+        } else if (std::string(argv[i]) == "--user" && i + 1 < argc) {
+            user = argv[++i];
+        } else if (std::string(argv[i]) == "--pass" && i + 1 < argc) {
+            pass = argv[++i];
+        } else if (std::string(argv[i]) == "--mobile") {
+            mobile = true;
+            if (thread_count > 2) thread_count = std::max(1, thread_count/2); // snížit zátěž
         } else if (std::string(argv[i]) == "--help") {
             std::cout << "Použití: zion_miner [--threads N] [--light] [--pool host:port] [--address ADDR] [--help]" << std::endl;
             std::cout << "  --threads N    Počet těžebních vláken (výchozí: " << thread_count << ")" << std::endl;
@@ -532,7 +549,7 @@ int main(int argc, char* argv[]) {
     // Start mining
     if (!pool_host.empty() && pool_port > 0) {
         std::cout << "Režim pool klient: " << pool_host << ":" << pool_port << std::endl;
-        miner.start_pool_mining(pool_host, pool_port, payout_address);
+        miner.start_pool_mining(pool_host, pool_port, payout_address, user, pass, mobile);
     } else {
         miner.start_mining();
     }

@@ -241,13 +241,22 @@ int main(int argc, char* argv[]) {
         };
         refresh_job();
         pcb.login = [&](const std::string& worker, const std::string& pass) -> std::string {
-            (void)worker; (void)pass; // žádná autentizace pro teď
+            // jednoduchá autentizace (pokud vyžadována v configu): pass musí odpovídat cfg.pool_password
+            if (cfg.pool_require_auth && pass != cfg.pool_password) {
+                return std::string();
+            }
             refresh_job();
+            // vygeneruj extranonce8 per worker (jednoduchá deterministika z worker jména)
+            Hash seed{}; for (size_t i=0;i<worker.size() && i<32;i++){ seed[i] = (uint8_t)worker[i]; }
+            static const char* xh = "0123456789abcdef";
+            std::string extranonce; extranonce.reserve(16);
+            for (int i=0;i<8;i++){ uint8_t b = seed[i]^0x5a; extranonce.push_back(xh[b>>4]); extranonce.push_back(xh[b&0xF]); }
             std::ostringstream oss;
             oss << "{\"job_id\":\"" << js.job_id << "\",";
             oss << "\"prev_hash\":\"" << tohex(js.prev) << "\",";
             oss << "\"target_bits\":" << js.bits << ",";
-            oss << "\"height\":" << js.height << "}";
+            oss << "\"height\":" << js.height << ",";
+            oss << "\"extranonce\":\"" << extranonce << "\"}";
             return oss.str();
         };
         pcb.get_job = [&]() -> std::string {

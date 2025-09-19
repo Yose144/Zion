@@ -4,6 +4,7 @@ networks:
   zion-seeds:
     name: zion-seeds
     driver: bridge
+    external: true
 
 services:
   seed1:
@@ -84,13 +85,6 @@ services:
       - zion-seeds
 
   uzi-pool:
-    build:
-      context: .
-      dockerfile: docker/uzi-pool/Dockerfile
-      args:
-        # TODO: Případně změnit na konkrétní fork/repo Uzi-Pool
-        - UZI_POOL_REPO=https://github.com/uziprotocol/uzipool.git
-        - UZI_POOL_BRANCH=master
     image: zion:uzi-pool
     container_name: zion-uzi-pool
     restart: unless-stopped
@@ -99,9 +93,18 @@ services:
     volumes:
       - ../adapters/uzi-pool-config:/config:ro
     depends_on:
+      - redis
       - rpc-shim
     ports:
       - "3333:3333"
+    networks:
+      - zion-seeds
+
+  redis:
+    image: redis:6-alpine
+    container_name: zion-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "no"]
     networks:
       - zion-seeds
 

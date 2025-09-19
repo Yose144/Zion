@@ -1,6 +1,56 @@
 # ZION project log
 
-Tento soubor zachycuje klíčová rozhodnutí, změny a kroky při přechodu na CryptoNote fork a nasazení mainnetu.
+Tento soubor zachycuje klíčová rozhod- Jak importovat do ZION (návrhy):
+  - Zavést „Presence Proof" modul (light client v PWA) – denní/periodické potvrzení účasti zapisované na řetězec nebo L2.
+  - Komunitní staking badge: reputace/skill odemknutá skrze přispění (kurátorství Amenti, dev, validace dat).
+  - Postupná KYC vrstva: volitelná, s jasným účelem (přístup k grantům, fiat/fiat rampám), nikdy povinná pro běžné používání.
+  - Privacy‑first: DIF/SSI standardy (DIDs, Verifiable Credentials) pro přenositelné ověřené atributy.
+
+## Filozofie Multi-Chain Dharma
+
+ZION se v budoucnu rozprostře napříč více blockchainy, přičemž každý řetězec ztělesňuje specifické aspekty dharmy – správného jednání a kosmického řádu:
+
+### Dharmic Chain Architecture
+- **ZION Core** (CryptoNote): Základ – stabilita, bezpečnost, CPU mining democratization
+- **Solana**: Rychlost karmy – okamžité transakce pro denní interakce
+- **Stellar**: Soucit v akci – celosvětové remittance a finanční inkluze
+- **Cardano**: Moudrost akademická – peer-reviewed vývoj a udržitelnost
+- **Tron**: Kreativita a hra – obsah, gaming, umělecká tvorba
+
+### Principy Multi-Chain Dharmy
+1. **Ahimsa** (nenásilí): Žádný řetězec není dominantní; všechny koexistují v harmonii
+2. **Satya** (pravda): Transparentní bridge protokoly, auditovatelné cross-chain transakce
+3. **Asteya** (nekrádež): Spravedlivé fee, žádné MEV extrakce, hodnota plyne zpět komunitě
+4. **Brahmacharya** (energetická disciplína): Udržitelné consensus mechanismy, green mining
+5. **Aparigraha** (nezabírání): Decentralizované ownership, komunitní treasury
+
+### Karma Flow Between Chains
+- **Unified Wallet**: Jeden interface pro všechny dharmic chains
+- **Cross-Chain Staking**: Stake na jednom řetězci validuje činy na dalších
+- **Karmic Reputation**: Dobré činy na libovolném řetězci zvyšují reputaci napříč ekosystémem
+- **Dharmic Governance**: Rozhodnutí se činí kolektivně napříč všemi řetězci
+
+### Bodhisattva Node Operators
+Node operátoři nejsou jen validátoři, ale "bodhisattvové" sítě – slouží blahu všech:
+- Běží uzly více řetězců pro síťovou redundanci
+- Poskytují vzdělávací zdroje nováčkům
+- Participují na cross-chain rescue operacích
+- Přispívají do open-source vývoje
+
+### Sangha (Komunita) Governance
+- **Multi-Chain DAO**: Governance tokeny z různých řetězců se agregují
+- **Consensus of Chains**: Závažná rozhodnutí vyžadují souhlas majority řetězců
+- **Dharmic Proposals**: Změny musí projít "dharmic audit" – služba komunitě, nikoliv zisku
+- **Cyclical Leadership**: Vedení rotuje mezi zástupci různých řetězců
+
+### Nirvaná State: Post-Scarcity Economy
+Cílem není nekonečná akumulace, ale dosažení dostatku pro všechny:
+- **Universal Basic Assets**: Každý člen sanghy má garantovaný přístup k základním službám
+- **Circular Token Economy**: Tokeny cirkulují, nejsou hoarded
+- **Gift Economy Integration**: Část ekonomiky běží na daru, nikoliv obchodu
+- **Regenerative Finance**: Investice podporují obnovu planetárních a společenských systémů
+
+*"Dharma je cesta správného jednání. V multi-chain světě není dharma omezena na jeden protokol, ale proudí mezi nimi jako vědomí mezi těly. ZION je první krok na této cestě – sever kompasu, který směřuje k digitální nirváně pro všechny bytosti."* změny a kroky při přechodu na CryptoNote fork a nasazení mainnetu.
 
 ## Parametry sítě
 - Název: zion

@@ -65,8 +65,7 @@ RUN chmod +x /usr/local/bin/zion*
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Switch to non-root user
-USER zion
+# Keep running as root; entrypoint will drop privileges to 'zion' via gosu
 WORKDIR /home/zion
 
 # Expose ports

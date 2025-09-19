@@ -23,13 +23,6 @@ if [ ! -d "$ZION_DATA_DIR" ]; then
     mkdir -p "$ZION_DATA_DIR"
 fi
 
-# If running as root, fix ownership and then switch to zion user
-if [ "$(id -u)" = "0" ]; then
-    chown -R zion:zion "$ZION_DATA_DIR"
-    echo "Switching to zion user..."
-    exec gosu zion "$0" "$@"
-fi
-
 # Decide if pool should be enabled
 POOL_ENABLE=${POOL_ENABLE:-}
 if [ -z "$POOL_ENABLE" ]; then
@@ -42,7 +35,9 @@ fi
 
 # Generate config (always refresh minimal fields to ensure consistency)
 echo "Generating configuration file..."
-cat > "$ZION_CONFIG" <<EOF
+if [ "$(id -u)" = "0" ]; then
+    # Generate as root to avoid permission issues on first run
+    cat > "$ZION_CONFIG" <<EOF
 {
     "network": "mainnet",
     "data_dir": "$ZION_DATA_DIR",
@@ -56,16 +51,45 @@ cat > "$ZION_CONFIG" <<EOF
     "pool_fee": $POOL_FEE
 }
 EOF
+    # Ensure ownership belongs to zion for subsequent writes
+    chown -R zion:zion "$ZION_DATA_DIR"
+else
+    cat > "$ZION_CONFIG" <<EOF
+{
+    "network": "mainnet",
+    "data_dir": "$ZION_DATA_DIR",
+    "log_level": "$ZION_LOG_LEVEL",
+    "p2p_port": $P2P_PORT,
+    "rpc_port": $RPC_PORT,
+    "pool_enable": ${POOL_ENABLE},
+    "pool_port": $POOL_PORT,
+    "pool_bind": "$POOL_BIND",
+    "pool_difficulty": $POOL_DIFFICULTY,
+    "pool_fee": $POOL_FEE
+}
+EOF
+fi
 
 case "$ZION_MODE" in
     daemon)
         echo "Starting Zion daemon..."
-        exec ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        # Drop privileges if currently root
+        if [ "$(id -u)" = "0" ]; then
+            echo "Switching to zion user..."
+            exec gosu zion ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        else
+            exec ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        fi
         ;;
 
     pool)
         echo "Starting Zion daemon with built-in pool enabled..."
-        exec ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        if [ "$(id -u)" = "0" ]; then
+            echo "Switching to zion user..."
+            exec gosu zion ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        else
+            exec ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        fi
         ;;
     
     miner)
@@ -75,16 +99,31 @@ case "$ZION_MODE" in
     
     wallet)
         echo "Starting Zion wallet..."
-        exec zion_wallet "$@"
+        if [ "$(id -u)" = "0" ]; then
+            echo "Switching to zion user..."
+            exec gosu zion zion_wallet "$@"
+        else
+            exec zion_wallet "$@"
+        fi
         ;;
     
     genesis)
         echo "Running Zion genesis tool..."
-        exec ziond --genesis --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        if [ "$(id -u)" = "0" ]; then
+            echo "Switching to zion user..."
+            exec gosu zion ziond --genesis --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        else
+            exec ziond --genesis --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        fi
         ;;
     
     *)
         echo "Starting Zion daemon (default)..."
-        exec ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        if [ "$(id -u)" = "0" ]; then
+            echo "Switching to zion user..."
+            exec gosu zion ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        else
+            exec ziond --config="$ZION_CONFIG" --datadir="$ZION_DATA_DIR" "$@"
+        fi
         ;;
 esac

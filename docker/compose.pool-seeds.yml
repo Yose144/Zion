@@ -40,20 +40,30 @@ services:
     image: zion:pool-latest
     container_name: zion-pool
     restart: unless-stopped
+    user: "0:0"  # start as root; entrypoint will chown and drop to 'zion' via gosu
     environment:
-      - ZION_MODE=pool
-      - POOL_PORT=3333
-      - POOL_BIND=0.0.0.0
-      - POOL_DIFFICULTY=1000
-      - POOL_FEE=1
+      - ZION_MODE=daemon
       - ZION_LOG_LEVEL=info
     volumes:
       - pool-data:/home/zion/.zion
     depends_on:
       - seed1
       - seed2
+    networks:
+      - zion-seeds
+
+  pool-nodejs:
+    build:
+      context: ../pool
+      dockerfile: Dockerfile
+    image: zion:pool-nodejs
+    container_name: zion-pool-nodejs
+    restart: unless-stopped
+    environment:
+      - POOL_PORT=3333
+      - POOL_BIND=0.0.0.0
     ports:
-      - "3333:3333"   # Expose stratum publicly
+      - "3333:3333"
     networks:
       - zion-seeds
 

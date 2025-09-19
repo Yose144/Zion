@@ -1,0 +1,18 @@
+version: "3.8"
+
+networks:
+  zion-seeds:
+    external: true
+    name: zion-seeds
+
+services:
+  xmrig-test:
+    image: xmrig/xmrig:6.21.0
+    container_name: zion-xmrig-test
+    restart: unless-stopped
+    command: >-
+      -o zion-uzi-pool:3333
+      -u Z7v1oJtV3pQAYt2oR9wA3sL5xTnQmBkR6yU8iN2mK4hP9eD3cF7aJ1kL2pQ9wE7rT6
+      -k --algo=rx/0 --rig-id TEST --print-time=5
+    networks:
+      - zion-seeds

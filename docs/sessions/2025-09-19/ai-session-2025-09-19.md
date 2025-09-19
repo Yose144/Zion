@@ -68,6 +68,21 @@ docker ps | grep zion-production
 # Expected: Shows (healthy) status
 ```
 
+---
+
+### Deployment checklist (recap)
+- [ ] Build pool image on server: `docker build -t zion:pool-latest .`
+- [ ] Deploy seeds+pool: `bash deploy-pool.sh`
+- [ ] Check ports: `nc -zv 91.98.122.165 3333` and container health.
+- [ ] Test dApp: `/amenti/pool-test` shows JSON-RPC response.
+- [ ] Start XMRig: use config-zion.json with algo rx/0 and pool 3333.
+
+### Notes for Sonnet 4
+- Continue from this log; pool code lives in `src/network/pool.cpp` and is enabled in `src/daemon/main.cpp` via `cfg.pool_enable`.
+- JSON-RPC methods supported: `login`, `getjob`, `submit`.
+- If extending protocol to match XMRig Stratum more closely, add keepalive, job notify push, and nonce guidance per worker.
+- Wallet UI work can start under `frontend/app/wallet/*` with simple keygen and address display, then integrate payouts.
+
 ### Port Configuration:
 - **18080**: P2P network (peer-to-peer communication)
 - **18081**: RPC endpoint (JSON-RPC API)

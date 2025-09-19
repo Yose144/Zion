@@ -267,6 +267,16 @@ docker stats zion-production
 
 ## 🚧 Úklid a údržba
 
+### Auto-clean po commitu
+
+Pro automatický úklid lokálního workspace a Docker cachí po každém `git commit` nainstaluj hook:
+
+```bash
+bash scripts/install_git_hooks.sh
+```
+
+Hook spouští `scripts/post_commit_cleanup.sh`, který volá `scripts/cleanup_workspace.sh` a `scripts/cleanup_docker.sh`.
+
 ### Lokální cleanup:
 ```bash
 # Úklid repozitáře (build artefakty, logy)

@@ -99,3 +99,17 @@ Generate a new log:
 bash scripts/generate_session_log.sh --title "My work" --notes "what I did"
 ```
 Or via Warp Workflows: "Capture session log".
+
+## Úklid (disk/místo)
+
+Pokud dochází místo (např. Docker na macOS selhává na I/O), použijte:
+
+```bash
+# Úklid repozitáře (build artefakty, logy)
+bash scripts/cleanup_workspace.sh
+
+# Úklid Dockeru (vyžaduje běžící Docker Desktop)
+bash scripts/cleanup_docker.sh
+```
+
+Pozn.: CI (GitHub Actions) nahrává build artefakty, takže lokální build není nutný pro ověření změn.

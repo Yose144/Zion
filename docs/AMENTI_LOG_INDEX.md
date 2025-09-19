@@ -21,6 +21,7 @@ This index links repository logs and the external sources used to assemble the A
 - WingMakers: https://wingmakers.com/ · https://tvurcikridel.cz/
 - VedaBase: https://vedabase.io/en/library/
 - Human Design: https://humandesign.cz/ · Gene Keys: https://home.genekeys.com/
+ - Pi Network (inspiration): https://minepi.com/ — mobile-first onboarding, social “mining” UX, large-scale KYC pipeline. Note: external ecosystem, referenced for UX ideas only.
 
 Notes:
 - Respect copyrights; we store only metadata and public links.

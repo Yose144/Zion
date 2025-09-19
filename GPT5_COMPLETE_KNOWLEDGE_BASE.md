@@ -140,6 +140,9 @@ curl http://localhost:18081/getheight  # Should return {"height":1,"status":"OK"
 - **Rose Symbolism**: "Searching for my rose" - divine feminine awakening
 - **Nature as Healer**: Ocean, sunrises, silence, peace
 
+#### External UX Inspiration
+- **Pi Network**: https://minepi.com — mobile-first onboarding, social engagement “mining,” large-scale KYC rollout. For ZION, consider importing only the ethical UX patterns (presence proofs, community contribution badges, optional KYC via SSI/DIDs) without recreating closed economics.
+
 ---
 
 ## 🌟 HALLS OF AMENTI - COSMIC ARCHITECTURE

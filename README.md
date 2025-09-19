@@ -34,6 +34,11 @@ Poznámka: Dokud neprovedete kroky výše, klony vašeho hlavního repozitáře 
 - Integration guide: `docs/dapp/amenti-integration.md`
 - Purpose: Provide structured metadata (titles, links, images) for the NewEarth Amenti Library within a dApp UI.
 
+### Inspirace: Pi Network
+- Web: https://minepi.com/
+- Důvod: masový mobilní on‑boarding a „sociální těžba“ – zajímavé UX vzory pro ZION PWA.
+- Pozn.: Referenční inspirace, žádné vazby či integrace; jakýkoli import konceptů musí respektovat suverenitu uživatelů, etiku a regulace.
+
 ### Branding
 - Draft guide: `docs/BRANDING.md`
 - Logo SVG: `assets/logos/zion.svg`

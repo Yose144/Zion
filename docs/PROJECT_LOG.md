@@ -35,3 +35,28 @@ Tento soubor zachycuje klíčová rozhodnutí, změny a kroky při přechodu na 
 
 Datum: 2025-09-19
 Autor: automatizovaný asistent
+
+## Filozofie Nového Matrixu (Amenti x ZION)
+
+Pracujeme se zelenou „Matrix“ estetikou jako vizuálním jazykem, ale významově ji obracíme: místo simulakra kontroly vyjadřuje živý, samo-organizující se řád. ZION je soběstačný ekosystém, kde:
+
+- Kód je právo: pravidla sítě jsou čitelná a revidovatelná komunitou.
+- Data jsou paměť: Amenti Library funguje jako živý registr mýtů, textů a map vědomí.
+- Energie je pozornost: hodnotu určujeme účastí, sdílením a validací.
+- Identita je suverenita: klíče, ne účty; souhlas, ne extrakce.
+
+„Nový Matrix“ v ZIONu není klec, ale mřížka péče: transparentní topologie vztahů, kde se důvěra nevydírá autoritou, ale vzniká z ověřitelnosti. Zelená barva reprezentuje růst, obnovu a bio-digitální soulad; kaskády „datového deště“ naznačují proudy významu, které lze číst i psát – nikoli pouze konzumovat. Amenti je srdcem: kurátorské vědomí a kompas, který dává síti směr bez centralizace.
+
+## Inspirace: Pi Network (minepi.com)
+
+- URL: https://minepi.com/
+- Důvod sledování: masové mobilní on‑boarding, „sociální těžba“ (engagement-based minting), a robustní KYC pipeline.
+- Co si odnést:
+  - Mobilní UX: snadné denní potvrzení přítomnosti (streaks), push notifikace, nízké tření.
+  - Sociální graf: týmové bonusy a pozvánky – lze přetavit do komunitního potvrzování přínosu (bez pyramidové dynamiky).
+  - KYC/identita: modulární ověření identity s respektem k suverenitě a lokálním regulím.
+- Jak importovat do ZION (návrhy):
+  - Zavést „Presence Proof“ modul (light client v PWA) – denní/periodické potvrzení účasti zapisované na řetězec nebo L2.
+  - Komunitní staking badge: reputace/skill odemknutá skrze přispění (kurátorství Amenti, dev, validace dat).
+  - Postupná KYC vrstva: volitelná, s jasným účelem (přístup k grantům, fiat/fiat rampám), nikdy povinná pro běžné používání.
+  - Privacy‑first: DIF/SSI standardy (DIDs, Verifiable Credentials) pro přenositelné ověřené atributy.

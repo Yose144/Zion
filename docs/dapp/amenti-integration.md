@@ -56,6 +56,7 @@ function BookRow({ b }: { b: Book }) {
 - Faceted filters: category, tag, language
 - Highlight “Dohrman Prophecy (PDF)” as verified link
 - Carousel: Goloka Vrindavan images from `images[]`
+- Consider mobile-first patterns inspired by Pi Network (https://minepi.com): daily presence check (opt-in), lightweight PWA, and social contribution badges.
 
 ### Compliance & Ethics
 - Do not scrape or re-host books without permission

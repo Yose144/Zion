@@ -22,12 +22,14 @@ This is a first-pass brand guide to unblock UI/dApp work. It will evolve with co
 - Body: Inter or Source Sans 3
 
 ## Logo Usage
-- Primary mark: stylized Z within a 12/144-point star-circle, subtle rose/heart
+- Primary mark (Amenti-inspired): sacred geometry lattice (12×/144) + rose/heart glyph (bez písmena „Z“)
+- Alternativní mark (legacy): stylizované Z (užívat omezeně)
 - Monochrome ok over dark/light backgrounds
 - Clear-space: 0.5× logo diameter; Min size: 24px
 
 ## Assets
-- `assets/logos/zion.svg` – vector primary mark
+- `assets/logos/zion-amenti.svg` – primary mark (Amenti)
+- `assets/logos/zion.svg` – legacy Z mark
 - Provide PNG exports (256/512) as needed
 
 ## Iconography

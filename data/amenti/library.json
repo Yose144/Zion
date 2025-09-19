@@ -17,7 +17,8 @@
       "language": "multi",
       "categories": ["Esoteric", "Amenti"],
       "description": "Core foundation text outlining Amenti cosmology and consciousness evolution.",
-      "landingPage": "https://newearth.cz/V2/halls.html",
+  "landingPage": "https://newearth.cz/V2/halls.html",
+  "cover": "https://newearth.cz/V2/img/144Halls.jpg",
       "downloads": [],
       "images": [],
       "tags": ["Amenti", "Cosmology", "Consciousness"]
@@ -30,7 +31,8 @@
       "language": "multi",
       "categories": ["Hermetic", "Amenti"],
       "description": "Hermetic-alchemical corpus with Atlantean lineage, bridging ancient wisdom and transformation.",
-      "landingPage": "https://newearth.cz/V2/halls.html",
+  "landingPage": "https://newearth.cz/V2/halls.html",
+  "cover": "/graphics/metatron-cube.svg",
       "downloads": [],
       "images": [],
       "tags": ["Hermeticism", "Alchemy", "Atlantean"]
@@ -43,7 +45,8 @@
       "language": "multi",
       "categories": ["Amenti", "Timeline"],
       "description": "2012–2024 activation cycle and planetary consciousness shift notes.",
-      "landingPage": "https://newearth.cz/V2/halls.html",
+  "landingPage": "https://newearth.cz/V2/halls.html",
+  "cover": "https://newearth.cz/V2/img/Heart2012.jpg",
       "downloads": [],
       "images": [],
       "tags": ["2012", "Activation", "Starseeds"]
@@ -56,7 +59,8 @@
       "language": "multi",
       "categories": ["Cosmology", "Consciousness"],
       "description": "Multiversal model including 22 fields of consciousness (Konstanta věčnosti).",
-      "landingPage": "https://newearth.cz/V2/halls.html",
+  "landingPage": "https://newearth.cz/V2/halls.html",
+  "cover": "/graphics/cosmic-egg.svg",
       "downloads": [],
       "images": [],
       "tags": ["22 Fields", "Konstanta Večnosti", "Model"]
@@ -69,7 +73,8 @@
       "language": "cs",
       "categories": ["Prophecy", "WingMakers"],
       "description": "Czech prophetic narrative aligned with global transformation themes.",
-      "landingPage": "https://projektnewearth.blogspot.com/2024/10/oraculum-18201393118.html",
+  "landingPage": "https://projektnewearth.blogspot.com/2024/10/oraculum-18201393118.html",
+  "cover": "/graphics/rose-heart.svg",
       "downloads": [
         {
           "url": "http://www.newearth.cz/src/Dohrmanovo-proroctvi.pdf",
@@ -88,7 +93,8 @@
       "language": "en",
       "categories": ["WingMakers", "Mythos"],
       "description": "WingMakers narrative involving time capsules and advanced contact.",
-      "landingPage": "https://wingmakers.com/",
+  "landingPage": "https://wingmakers.com/",
+  "cover": "/graphics/arrow-glyph.svg",
       "downloads": [],
       "images": [],
       "tags": ["WingMakers", "Time Capsule", "Myth"]
@@ -101,7 +107,8 @@
       "language": "multi",
       "categories": ["Vedic", "Bhakti"],
       "description": "Complete Vedic literature in digital form; path to endless love (Goloka Vrindavan).",
-      "landingPage": "https://vedabase.io/en/library/",
+  "landingPage": "https://vedabase.io/en/library/",
+  "cover": "https://newearth.cz/V2/img/radhakrishna.jpg",
       "downloads": [],
       "images": [],
       "tags": ["Vedas", "Bhagavata", "Bhakti"]
@@ -114,7 +121,8 @@
       "language": "multi",
       "categories": ["Self-Discovery"],
       "description": "Birth-data based frameworks for personal potential discovery.",
-      "landingPage": "https://home.genekeys.com/",
+  "landingPage": "https://home.genekeys.com/",
+  "cover": "/graphics/hexagram.svg",
       "downloads": [],
       "images": [],
       "tags": ["Design", "Gene Keys", "Ascension"]
@@ -184,6 +192,7 @@
     "dohrmanProphecyPdf": "http://www.newearth.cz/src/Dohrmanovo-proroctvi.pdf",
     "vedabase": "https://vedabase.io/en/library/",
     "humanDesign": "https://humandesign.cz/",
-    "geneKeys": "https://home.genekeys.com/"
+    "geneKeys": "https://home.genekeys.com/",
+    "piNetwork": "https://minepi.com/"
   }
 }

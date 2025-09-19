@@ -192,6 +192,16 @@ npm run dev
 ./build/zion_miner --pool pool.zion.network:3333 --user YOUR_ADDRESS --threads 4
 ```
 
+#### XMRig assets (neukládáme do repa)
+- Binery XMRig nejsou verzované v gitu kvůli velikosti. Pro stažení použijte helper skript:
+
+```bash
+scripts/fetch_xmrig.sh
+```
+
+- Konfigurace: viz `mining/platforms/*/config-zion.json` (algoritmus rx/0, endpoint `tcp://<server>:3333`).
+- Poznámka: „Stargate“ 3333 zatím není otevřená (viz `logs/SESSION_2025-09-19_FINAL.md`).
+
 ### 4. Peněženka:
 ```bash
 # CLI wallet

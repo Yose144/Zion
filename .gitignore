@@ -17,6 +17,24 @@ Makefile
 /daemon_test.log
 /miner_test.log
 
+# Node.js / Next.js (frontend)
+frontend/.next/
+frontend/node_modules/
+frontend/.turbo/
+frontend/out/
+*.tsbuildinfo
+
+# Archives and large binaries (never commit)
+*.zip
+*.tgz
+*.tar.gz
+*.7z
+*.iso
+*.bin
+*.exe
+*.pkg
+*.dmg
+
 # Runtime data
 / test_data/
 / test_wallets/

@@ -1,15 +1,15 @@
 ARG UZI_POOL_REPO=https://github.com/zone117x/node-cryptonote-pool.git
 ARG UZI_POOL_BRANCH=master
 
-FROM node:12-buster AS base
-# Debian buster je na EOL – kompletně přepíšeme sources.list na archivní mirror a vypneme kontrolu platnosti
+FROM node:8-stretch AS base
+# Debian stretch je na EOL – přesměrujeme repozitáře na archive.debian.org a vypneme kontrolu platnosti
 RUN set -eux; \
-	echo 'deb http://archive.debian.org/debian buster main contrib non-free' > /etc/apt/sources.list; \
-	echo 'deb-src http://archive.debian.org/debian buster main contrib non-free' >> /etc/apt/sources.list; \
-	echo 'deb http://archive.debian.org/debian-security buster/updates main contrib non-free' >> /etc/apt/sources.list; \
+	echo 'deb http://archive.debian.org/debian stretch main contrib non-free' > /etc/apt/sources.list; \
+	echo 'deb-src http://archive.debian.org/debian stretch main contrib non-free' >> /etc/apt/sources.list; \
+	echo 'deb http://archive.debian.org/debian-security stretch/updates main contrib non-free' >> /etc/apt/sources.list; \
 	printf 'Acquire::Check-Valid-Until \"false\";\nAcquire::AllowInsecureRepositories \"true\";\n' > /etc/apt/apt.conf.d/99no-check-valid-until; \
 	apt-get -o Acquire::Check-Valid-Until=false update; \
-	apt-get install -y --no-install-recommends git python make g++; \
+	apt-get install -y --no-install-recommends git python make g++ libssl-dev; \
 	rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 

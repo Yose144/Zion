@@ -35,4 +35,7 @@ struct NodeConfig {
 // Načte minimální konfiguraci ze souboru (INI-like)
 bool load_node_config(const std::string& path, NodeConfig& out, std::string& error);
 
+// Načte JSON konfiguraci
+bool load_json_config(const std::string& path, NodeConfig& out, std::string& error);
+
 } // namespace zion

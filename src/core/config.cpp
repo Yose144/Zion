@@ -90,4 +90,67 @@ bool load_node_config(const std::string& path, NodeConfig& out, std::string& err
     return true;
 }
 
+bool load_json_config(const std::string& path, NodeConfig& out, std::string& error) {
+    std::ifstream f(path);
+    if (!f) { error = "Cannot open config: " + path; return false; }
+    
+    std::stringstream buffer;
+    buffer << f.rdbuf();
+    std::string content = buffer.str();
+    
+    // Jednoduchý JSON parser pro naše klíče
+    auto find_value = [&](const std::string& key) -> std::string {
+        std::string search = "\"" + key + "\"";
+        size_t pos = content.find(search);
+        if (pos == std::string::npos) return "";
+        
+        pos = content.find(":", pos);
+        if (pos == std::string::npos) return "";
+        pos++;
+        
+        // Přeskočit whitespace
+        while (pos < content.size() && (content[pos] == ' ' || content[pos] == '\t' || content[pos] == '\n')) pos++;
+        
+        if (pos >= content.size()) return "";
+        
+        if (content[pos] == '"') {
+            // String hodnota
+            pos++;
+            size_t end = content.find('"', pos);
+            if (end == std::string::npos) return "";
+            return content.substr(pos, end - pos);
+        } else if (content[pos] == 't' || content[pos] == 'f') {
+            // Boolean hodnota
+            if (content.substr(pos, 4) == "true") return "true";
+            if (content.substr(pos, 5) == "false") return "false";
+            return "";
+        } else {
+            // Číselná hodnota
+            size_t end = pos;
+            while (end < content.size() && (isdigit(content[end]) || content[end] == '.')) end++;
+            return content.substr(pos, end - pos);
+        }
+    };
+    
+    // Načíst hodnoty
+    std::string val;
+    
+    val = find_value("p2p_port");
+    if (!val.empty()) { try { out.p2p_port = static_cast<uint16_t>(std::stoul(val)); } catch (...) {} }
+    
+    val = find_value("rpc_port");
+    if (!val.empty()) { try { out.rpc_port = static_cast<uint16_t>(std::stoul(val)); } catch (...) {} }
+    
+    val = find_value("pool_enable");
+    if (!val.empty()) { out.pool_enable = (val == "true"); }
+    
+    val = find_value("pool_port");
+    if (!val.empty()) { try { out.pool_port = static_cast<uint16_t>(std::stoul(val)); } catch (...) {} }
+    
+    val = find_value("pool_difficulty");
+    if (!val.empty()) { try { out.genesis_difficulty = static_cast<uint32_t>(std::stoul(val)); } catch (...) {} }
+    
+    return true;
+}
+
 } // namespace zion

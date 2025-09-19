@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y \
     cmake \
     git \
     libssl-dev \
-    libboost-all-dev \
     pkg-config \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -19,11 +19,21 @@ WORKDIR /build
 # Copy source code
 COPY . .
 
-# Initialize submodules and build
-RUN git submodule update --init --recursive && \
+# Clean any existing CMake cache and manually clone RandomX
+RUN rm -f CMakeCache.txt && \
+    rm -rf CMakeFiles/ && \
+    rm -rf build/ && \
+    rm -rf external/randomx && \
+    mkdir -p external && \
+    cd external && \
+    git clone https://github.com/tevador/RandomX.git randomx && \
+    cd randomx && \
+    git checkout tags/v1.2.1 && \
+    cd /build && \
+    ls -la external/randomx/ && \
     mkdir -p build && \
     cd build && \
-    cmake .. && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
     make -j$(nproc)
 
 # Runtime stage
@@ -32,32 +42,22 @@ FROM ubuntu:22.04
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     libssl3 \
-    libboost-system1.74.0 \
-    libboost-filesystem1.74.0 \
-    libboost-thread1.74.0 \
-    libboost-program-options1.74.0 \
     ca-certificates \
     curl \
-    jq \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN useradd -m -s /bin/bash zion && \
-    mkdir -p /home/zion/.zion /var/log/zion && \
-    chown -R zion:zion /home/zion /var/log/zion
+    mkdir -p /home/zion/.zion
 
 # Copy binaries from build stage
-COPY --from=builder /build/build/zion_daemon /usr/local/bin/
+COPY --from=builder /build/build/ziond /usr/local/bin/
 COPY --from=builder /build/build/zion_miner /usr/local/bin/
 COPY --from=builder /build/build/zion_wallet /usr/local/bin/
 COPY --from=builder /build/build/zion_genesis /usr/local/bin/
 
 # Make binaries executable
-RUN chmod +x /usr/local/bin/zion_*
-
-# Copy default configuration
-COPY configs/mainnet.json /home/zion/.zion/config.json
-RUN chown zion:zion /home/zion/.zion/config.json
+RUN chmod +x /usr/local/bin/zion*
 
 # Copy entrypoint script
 COPY docker/entrypoint.sh /entrypoint.sh
@@ -68,17 +68,11 @@ USER zion
 WORKDIR /home/zion
 
 # Expose ports
-# RPC port
-EXPOSE 18080
-# P2P port  
-EXPOSE 18081
-# Pool stratum port
-EXPOSE 3333
+EXPOSE 18080 18081 3333
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:18080/status || exit 1
+    CMD curl -f http://localhost:18081/status || exit 1
 
-# Default entrypoint and command
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["daemon"]

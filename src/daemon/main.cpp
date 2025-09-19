@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Initializing ZION daemon..." << std::endl;
+    std::cout << "[DEBUG] Starting daemon debug..." << std::endl;
 
     // Initialize RandomX
     auto& randomx = RandomXWrapper::instance();
@@ -81,6 +82,10 @@ int main(int argc, char* argv[]) {
 
     // Load config (optional)
     NodeConfig cfg;
+    // Pro Docker - defaultně povolit pool
+    cfg.pool_enable = true;
+    cfg.pool_port = 3333;
+    
     if (!config_path.empty()) {
         std::string err;
         if (load_node_config(config_path, cfg, err)) {
@@ -89,6 +94,9 @@ int main(int argc, char* argv[]) {
             std::cerr << "Warning: could not load config: " << err << std::endl;
         }
     }
+    
+    std::cout << "[DEBUG] Pool enabled: " << (cfg.pool_enable ? "true" : "false") << std::endl;
+    std::cout << "[DEBUG] Pool port: " << cfg.pool_port << std::endl;
 
     // Create blockchain instance
     Blockchain blockchain;
@@ -225,6 +233,7 @@ int main(int argc, char* argv[]) {
     // Start built-in pool server if enabled
     std::unique_ptr<PoolServer> pool;
     if (cfg.pool_enable) {
+        std::cout << "[POOL] Starting pool server on port " << cfg.pool_port << std::endl;
         PoolConfig pcfg; pcfg.port = cfg.pool_port;
         PoolServer::Callbacks pcb;
         // jednoduchý job state

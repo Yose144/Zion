@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # ZION daemon with pool server
+  zion-pool:
+    build: .
+    container_name: zion-pool
+    environment:
+      - ZION_MODE=pool
+      - POOL_PORT=3333
+      - POOL_DIFFICULTY=1000
+      - POOL_FEE=1
+      - ZION_LOG_LEVEL=info
+      - ENABLE_POOL=true
+      - POOL_REQUIRE_AUTH=false
+    volumes:
+      - ./data/pool:/home/zion/.zion
+      - ./logs/pool:/var/log/zion
+    ports:
+      - "3333:3333"    # Pool stratum port
+      - "18080:18080"  # RPC/Status port
+      - "18081:18081"  # P2P port
+    networks:
+      - zion-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18080/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+  # Web dashboard (optional)
+  zion-web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: zion-web
+    environment:
+      - NODE_ENV=production
+      - ZION_API_URL=http://zion-pool:18080
+    ports:
+      - "3000:3000"    # Web dashboard
+    networks:
+      - zion-network
+    depends_on:
+      - zion-pool
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ZION seed node (for network bootstrap)
+  zion-seed:
+    build: .
+    container_name: zion-seed
+    environment:
+      - ZION_MODE=seed
+      - ZION_LOG_LEVEL=info
+      - ENABLE_POOL=false
+    volumes:
+      - ./data/seed:/home/zion/.zion
+      - ./logs/seed:/var/log/zion
+    ports:
+      - "28080:18080"  # RPC/Status port (mapped to avoid conflict)
+      - "28081:18081"  # P2P port (mapped to avoid conflict)
+    networks:
+      - zion-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18080/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+
+networks:
+  zion-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  pool-data:
+  seed-data:

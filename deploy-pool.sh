@@ -28,7 +28,11 @@ services:
     image: zion:production-fixed
     container_name: zion-seed1
     restart: unless-stopped
-    command: ["/usr/local/bin/ziond","--data-dir","/home/zion/.zion","--p2p-bind-port","18080","--rpc-bind-port","18081","--rpc-bind-ip","0.0.0.0","--log-level","2"]
+    environment:
+      ZION_MODE: daemon
+      ZION_LOG_LEVEL: info
+      P2P_PORT: "18080"
+      RPC_PORT: "18081"
     volumes:
       - seed1-data:/home/zion/.zion
     networks: [zion-seeds]
@@ -37,17 +41,27 @@ services:
     image: zion:production-fixed
     container_name: zion-seed2
     restart: unless-stopped
-    command: ["/usr/local/bin/ziond","--data-dir","/home/zion/.zion","--p2p-bind-port","18080","--rpc-bind-port","18081","--rpc-bind-ip","0.0.0.0","--seed-node","zion-seed1:18080","--log-level","2"]
+    environment:
+      ZION_MODE: daemon
+      ZION_LOG_LEVEL: info
+      P2P_PORT: "18080"
+      RPC_PORT: "18081"
     volumes:
       - seed2-data:/home/zion/.zion
     depends_on: [seed1]
     networks: [zion-seeds]
 
   pool:
-    image: zion:production-fixed
+    image: zion:pool-latest
     container_name: zion-pool
     restart: unless-stopped
-    command: ["/usr/local/bin/ziond","--data-dir","/home/zion/.zion","--pool-mode","--pool-port","3333","--pool-bind-ip","0.0.0.0","--seed-node","zion-seed1:18080","--log-level","2"]
+    environment:
+      ZION_MODE: pool
+      ZION_LOG_LEVEL: info
+      POOL_PORT: "3333"
+      POOL_BIND: 0.0.0.0
+      POOL_DIFFICULTY: "1000"
+      POOL_FEE: "1"
     volumes:
       - pool-data:/home/zion/.zion
     depends_on: [seed1, seed2]
@@ -63,6 +77,17 @@ volumes:
 networks:
   zion-seeds: { name: zion-seeds, driver: bridge }
 EOF
+
+  echo "[server] Building pool image from provided Dockerfile (if present)"
+  if [ -d /opt/zion-src ]; then rm -rf /opt/zion-src; fi
+  mkdir -p /opt/zion-src
+  # Expect caller to rsync sources into /opt/zion-src; if not, try to clone minimal context
+  if [ ! -f /opt/zion-src/Dockerfile ]; then
+    echo "[server] No sources synced, cloning minimal context..."
+    git clone https://github.com/Yose144/Zion.git /opt/zion-src || true
+  fi
+  cd /opt/zion-src
+  docker build -t zion:pool-latest .
 
   echo "[server] Starting stack"
   cd /opt/zion-pool

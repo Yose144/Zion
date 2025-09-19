@@ -44,6 +44,7 @@ RUN apt-get update && apt-get install -y \
     libssl3 \
     ca-certificates \
     curl \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -70,9 +71,9 @@ WORKDIR /home/zion
 # Expose ports
 EXPOSE 18080 18081 3333
 
-# Health check
+# Health check: consider pool or daemon
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:18081/status || exit 1
+    CMD bash -lc 'if [ "${ZION_MODE:-daemon}" = "pool" ]; then nc -z 127.0.0.1 ${POOL_PORT:-3333}; else curl -fsS http://127.0.0.1:${RPC_PORT:-18081}/status; fi'
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["daemon"]

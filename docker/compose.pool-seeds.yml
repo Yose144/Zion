@@ -13,14 +13,8 @@ services:
     environment:
       - ZION_MODE=daemon
       - ZION_LOG_LEVEL=info
-    command: [
-      "/usr/local/bin/ziond",
-      "--data-dir", "/home/zion/.zion",
-      "--p2p-bind-port", "18080",
-      "--rpc-bind-port", "18081",
-      "--rpc-bind-ip", "0.0.0.0",
-      "--log-level", "2"
-    ]
+      - P2P_PORT=18080
+      - RPC_PORT=18081
     volumes:
       - seed1-data:/home/zion/.zion
     networks:
@@ -33,15 +27,8 @@ services:
     environment:
       - ZION_MODE=daemon
       - ZION_LOG_LEVEL=info
-    command: [
-      "/usr/local/bin/ziond",
-      "--data-dir", "/home/zion/.zion",
-      "--p2p-bind-port", "18080",
-      "--rpc-bind-port", "18081",
-      "--rpc-bind-ip", "0.0.0.0",
-      "--seed-node", "zion-seed1:18080",
-      "--log-level", "2"
-    ]
+      - P2P_PORT=18080
+      - RPC_PORT=18081
     volumes:
       - seed2-data:/home/zion/.zion
     depends_on:
@@ -50,24 +37,16 @@ services:
       - zion-seeds
 
   pool:
-    image: zion:production-fixed
+    image: zion:pool-latest
     container_name: zion-pool
     restart: unless-stopped
     environment:
       - ZION_MODE=pool
       - POOL_PORT=3333
+      - POOL_BIND=0.0.0.0
       - POOL_DIFFICULTY=1000
       - POOL_FEE=1
       - ZION_LOG_LEVEL=info
-    command: [
-      "/usr/local/bin/ziond",
-      "--data-dir", "/home/zion/.zion",
-      "--pool-mode",
-      "--pool-port", "3333",
-      "--pool-bind-ip", "0.0.0.0",
-      "--seed-node", "zion-seed1:18080",
-      "--log-level", "2"
-    ]
     volumes:
       - pool-data:/home/zion/.zion
     depends_on:

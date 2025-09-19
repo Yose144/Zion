@@ -4,6 +4,7 @@
 #include <atomic>
 #include <chrono>
 #include <iomanip>
+#include <memory>
 #include "blockchain.h"
 #include "block.h"
 #include "transaction.h"
@@ -12,6 +13,7 @@
 #include "config.h"
 #include "network/p2p.h"
 #include "network/pool.h"
+#include "network/http_status.h"
 #include <sstream>
 
 using namespace zion;
@@ -290,6 +292,22 @@ int main(int argc, char* argv[]) {
         }
     }
     
+    // Start HTTP status server
+    uint16_t status_port = 18081; // Different from P2P port
+    HttpStatusServer status_server(status_port);
+    
+    // Set up data sources for status
+    auto blockchain_ptr = std::shared_ptr<Blockchain>(&blockchain, [](Blockchain*){});
+    status_server.set_blockchain(blockchain_ptr);
+    
+    if (status_server.start()) {
+        std::cout << "[HTTP] Status server started on port " << status_port << std::endl;
+        std::cout << "[HTTP] Access status at: http://localhost:" << status_port << "/" << std::endl;
+        std::cout << "[HTTP] JSON API at: http://localhost:" << status_port << "/status" << std::endl;
+    } else {
+        std::cerr << "[HTTP] Failed to start status server" << std::endl;
+    }
+    
     std::cout << "\nZION daemon is running. Press Ctrl+C to stop." << std::endl;
     std::cout << "Waiting for connections on port " << p2pcfg.bind_port << "..." << std::endl;
     
@@ -305,6 +323,9 @@ int main(int argc, char* argv[]) {
     }
     
     std::cout << "Cleaning up..." << std::endl;
+    status_server.stop();
+    if (pool) pool->stop();
+    p2p.stop();
     randomx.cleanup();
     
     std::cout << "ZION daemon stopped." << std::endl;

@@ -22,6 +22,8 @@ XMRig miner fails to connect to ZION blockchain with error:
 3. ❌ Algorithm mismatch: Tried rx/0 (RandomX) but ZION uses CryptoNote
 4. ❌ Tried cn/2 (CryptoNote v2) - still "reserved size" error
 5. ❌ Disabled RandomX features, enabled CryptoNote - still failing
+6. ❌ JSON-RPC start_mining method is not implemented in daemon
+7. ✅ getblocktemplate works with reserve_size=4, but returns large reserved_offset
 
 ### Current Configuration (Failed)
 ```json
@@ -34,6 +36,35 @@ XMRig miner fails to connect to ZION blockchain with error:
   }]
 }
 ```
+
+### Fresh RPC Evidence (2025-09-19)
+
+- start_mining:
+```
+POST /json_rpc {"method":"start_mining", ...}
+=> {"error":{"code":-32601,"message":"Method not found"}}
+```
+
+- getblocktemplate (reserve_size = 4):
+```
+POST /json_rpc {"method":"getblocktemplate","params":{"wallet_address":"<addr>","reserve_size":4}}
+=> {
+     "result": {
+       "height": 1,
+       "difficulty": 1,
+       "reserved_offset": 427,
+       "status": "OK",
+       "blocktemplate_blob": "0100bfbb..."
+     }
+   }
+```
+
+- XMRig error při daemon backendu (solo):
+```
+error: "To big reserved size, maximum 255", code: -3
+```
+
+Pozn.: Zdá se, že XMRig při solo/daemon režimu požaduje větší reserve_size než daemon akceptuje, nebo nesedí očekávání ohledně reserved_offset. To je hlavní kompatibilitní bod k vyřešení.
 
 ### Mining Structure Created
 ```
@@ -86,6 +117,7 @@ ssh root@91.98.122.165 'docker exec zion-production /usr/local/bin/ziond --help 
 2. **What reserve_size** should be used in getblocktemplate?
 3. **Should we use** different mining client than XMRig?
 4. **Is the mining** enabled on the daemon properly?
+5. Dá se u XMRig explicitně nastavit menší reserve_size pro daemon backend (<=255)? Pokud ne, doporučený workaround?
 
 ### Files Ready for Investigation
 - All platform miners: `mining/platforms/*/xmrig-6.21.3/`

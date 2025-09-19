@@ -9,7 +9,7 @@ RUN set -eux; \
 	echo 'deb http://archive.debian.org/debian-security stretch/updates main contrib non-free' >> /etc/apt/sources.list; \
 	printf 'Acquire::Check-Valid-Until \"false\";\nAcquire::AllowInsecureRepositories \"true\";\n' > /etc/apt/apt.conf.d/99no-check-valid-until; \
 	apt-get -o Acquire::Check-Valid-Until=false update; \
-	apt-get install -y --no-install-recommends git python make g++ libssl-dev; \
+	apt-get install -y --no-install-recommends git python make g++ libssl-dev libboost-all-dev libsodium-dev; \
 	rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 

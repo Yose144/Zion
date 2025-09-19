@@ -28,6 +28,14 @@ Time: ~162 seconds
 Status: ✅ Progressing normally
 ```
 
+### Pool 3333 Status (2025-09-20)
+- Uzi/zone117x node-cryptonote-pool image zbuildovaný (Node 8 + Boost/Sodium).
+- Kontejner startuje, ale padá na čtení configu (`config.poolServer` undefined). Port 3333 zatím nepřebrán.
+- Řešení: sladit `adapters/uzi-pool-config/config.json` s očekávaným formátem repa a případně přidat Redis. Viz `DEPLOYMENT_UPDATE_20250920_UZI_POOL_STATUS.md`.
+
+### Addendum (2025-09-20)
+- Přidán jednoduchý instalátor single-node (MystNodes-like): `docs/NODE_INSTALLER.md`, `docker/compose.single-node.yml`, `scripts/install-zion-node.sh`, `scripts/uninstall-zion-node.sh`.
+
 ### Compiled Components
 - [x] Dependencies installation
 - [x] CMake configuration  

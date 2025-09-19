@@ -167,6 +167,13 @@ docker-compose -f docker-compose.prod.yml up -d
 docker build -f docker/Dockerfile.zion-cryptonote.prod -t zion:custom .
 ```
 
+### Jednoduchá instalace jednoho uzlu (MystNodes-like)
+Viz `docs/NODE_INSTALLER.md`. Rychlý start:
+
+```bash
+scripts/install-zion-node.sh
+```
+
 ## 💼 Použití
 
 ### 1. Spuštění uzlu:

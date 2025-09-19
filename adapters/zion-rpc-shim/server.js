@@ -25,12 +25,47 @@ app.use((req, res, next) => {
 const ZION_RPC_URL = process.env.ZION_RPC_URL || 'http://seed1:18081/json_rpc';
 const PORT = parseInt(process.env.SHIM_PORT || '18089', 10);
 
+// Low-level JSON-RPC call to ziond; throws Error with optional .code
 async function zionRpc(method, params = {}) {
-  // Expected ziond JSON-RPC endpoint and shape; adjust if different.
   const payload = { jsonrpc: '2.0', id: '0', method, params };
-  const { data } = await axios.post(ZION_RPC_URL, payload, { timeout: 5000 });
-  if (data.error) throw new Error(data.error.message || 'ziond error');
-  return data.result;
+  try {
+    const { data } = await axios.post(ZION_RPC_URL, payload, { timeout: 8000 });
+    if (data && data.error) {
+      const err = new Error(data.error.message || 'ziond error');
+      if (typeof data.error.code !== 'undefined') err.code = data.error.code;
+      err.data = data.error.data;
+      throw err;
+    }
+    return data && data.result;
+  } catch (e) {
+    // Preserve axios response error codes if present
+    if (e.response && e.response.data && e.response.data.error) {
+      const de = e.response.data.error;
+      const err = new Error(de.message || e.message);
+      if (typeof de.code !== 'undefined') err.code = de.code;
+      err.data = de.data;
+      throw err;
+    }
+    throw e;
+  }
+}
+
+// Helper: try multiple method/param variants, return first success; else throw last error
+async function tryVariants(variants) {
+  let lastErr;
+  for (const v of variants) {
+    try {
+      console.log('[shim->ziond]', v.method, JSON.stringify(v.params));
+      const r = await zionRpc(v.method, v.params);
+      return r;
+    } catch (e) {
+      lastErr = e;
+      const code = typeof e.code !== 'undefined' ? e.code : 'n/a';
+      console.warn('[shim ziond error]', v.method, 'code=', code, 'msg=', e.message);
+      // Continue to next variant on method/param related errors
+    }
+  }
+  throw lastErr || new Error('all variants failed');
 }
 
 async function handleSingle(id, method, params) {
@@ -39,15 +74,34 @@ async function handleSingle(id, method, params) {
   switch (mu) {
       // Height aliases
   case 'getheight': {
-        const r = await zionRpc('get_height');
+    const r = await tryVariants([
+      { method: 'getheight', params: {} },
+      { method: 'get_height', params: {} }
+    ]);
         // Map to monero-like shape
         return { jsonrpc: '2.0', id, result: { height: r.height, count: r.height } };
+      }
+      case 'getinfo': {
+        // Minimal getinfo emulation for pools that ping daemon state
+        const h = await tryVariants([
+          { method: 'getheight', params: {} },
+          { method: 'get_height', params: {} }
+        ]);
+        return { jsonrpc: '2.0', id, result: { height: h.height, status: 'OK' } };
       }
       // Block template aliases
   case 'getblocktemplate': {
         // Pool typically sends { wallet_address, reserve_size }
-        const { wallet_address, reserve_size, address } = params || {};
-        const r = await zionRpc('get_block_template', { address: address || wallet_address, reserve_size });
+        const { wallet_address, reserve_size, address, reserve_size: rs } = params || {};
+        const wal = address || wallet_address;
+        const reserve = typeof reserve_size !== 'undefined' ? reserve_size : rs;
+        const r = await tryVariants([
+          { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
+          { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
+          // Some daemons accept 'address' instead of 'wallet_address'
+          { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
+          { method: 'get_block_template', params: { address: wal, reserve_size: reserve } }
+        ]);
         // Map fields (template_blob, difficulty, height, seed_hash ... adjust as ziond provides)
         const result = {
           blocktemplate_blob: r.blocktemplate_blob || r.template || '',
@@ -62,21 +116,35 @@ async function handleSingle(id, method, params) {
       // Submit block aliases
   case 'submitblock': {
         const blob = Array.isArray(params) ? params[0] : (params && (params.blob || params.block)) || undefined;
-        const r = await zionRpc('submit_block', { blob });
+        const r = await tryVariants([
+          { method: 'submitblock', params: [blob] },
+          { method: 'submit_block', params: [blob] },
+          { method: 'submitblock', params: { block: blob } },
+          { method: 'submit_block', params: { block: blob } }
+        ]);
         return { jsonrpc: '2.0', id, result: r || true };
       }
       // Optional helpers used by some pools
   case 'getblockcount': {
-        const r = await zionRpc('get_height');
+        const r = await tryVariants([
+          { method: 'getheight', params: {} },
+          { method: 'get_height', params: {} }
+        ]);
         return { jsonrpc: '2.0', id, result: { count: r.height } };
       }
       case 'getlastblockheader': {
         try {
-          const r = await zionRpc('get_last_block_header');
+          const r = await tryVariants([
+            { method: 'getlastblockheader', params: {} },
+            { method: 'get_last_block_header', params: {} }
+          ]);
           return { jsonrpc: '2.0', id, result: r };
         } catch (e) {
           // Fallback: return minimal header
-          const h = await zionRpc('get_height');
+          const h = await tryVariants([
+            { method: 'getheight', params: {} },
+            { method: 'get_height', params: {} }
+          ]);
           return { jsonrpc: '2.0', id, result: { block_header: { height: h.height } } };
         }
       }
@@ -99,14 +167,20 @@ app.post('/json_rpc', async (req, res) => {
       return res.json(results);
     } else {
       const { id, method, params } = body || {};
-      console.log('shim method=', method);
+      console.log('shim method=', method, 'params=', JSON.stringify(params));
       const out = await handleSingle(id, method, params);
       return res.status(out.error ? (out.error.code === -32601 ? 501 : 500) : 200).json(out);
     }
   } catch (e) {
     const id = (body && body.id) || '0';
-    return res.status(500).json({ jsonrpc: '2.0', id, error: { code: -32000, message: e.message || 'shim error' } });
+    const code = typeof e.code !== 'undefined' ? e.code : -32000;
+    return res.status(500).json({ jsonrpc: '2.0', id, error: { code, message: e.message || 'shim error' } });
   }
+});
+
+// Simple healthcheck & info
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', proxy: ZION_RPC_URL });
 });
 
 app.listen(PORT, () => {

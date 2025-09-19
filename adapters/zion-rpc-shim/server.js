@@ -5,7 +5,22 @@ const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
-app.use(express.json({ limit: '1mb' }));
+// Custom tolerant JSON parser to handle both single and batch requests
+app.use((req, res, next) => {
+  if (req.method !== 'POST') return next();
+  let data = '';
+  req.setEncoding('utf8');
+  req.on('data', (chunk) => { data += chunk; });
+  req.on('end', () => {
+    try {
+      req.body = JSON.parse(data);
+    } catch (e) {
+      console.error('shim JSON parse error:', e.message, 'body snippet=', (data || '').slice(0, 100));
+      req.body = undefined;
+    }
+    next();
+  });
+});
 
 const ZION_RPC_URL = process.env.ZION_RPC_URL || 'http://seed1:18081/json_rpc';
 const PORT = parseInt(process.env.SHIM_PORT || '18089', 10);
@@ -18,19 +33,21 @@ async function zionRpc(method, params = {}) {
   return data.result;
 }
 
-app.post('/json_rpc', async (req, res) => {
-  const { id, method, params } = req.body || {};
-  try {
-    switch (method) {
-      case 'get_height': {
+async function handleSingle(id, method, params) {
+  const m = (method || '').toString().toLowerCase();
+  const mu = m.replace(/_/g, '');
+  switch (mu) {
+      // Height aliases
+  case 'getheight': {
         const r = await zionRpc('get_height');
         // Map to monero-like shape
-        return res.json({ jsonrpc: '2.0', id, result: { height: r.height } });
+        return { jsonrpc: '2.0', id, result: { height: r.height, count: r.height } };
       }
-      case 'get_block_template': {
+      // Block template aliases
+  case 'getblocktemplate': {
         // Pool typically sends { wallet_address, reserve_size }
-        const { wallet_address, reserve_size } = params || {};
-        const r = await zionRpc('get_block_template', { address: wallet_address, reserve_size });
+        const { wallet_address, reserve_size, address } = params || {};
+        const r = await zionRpc('get_block_template', { address: address || wallet_address, reserve_size });
         // Map fields (template_blob, difficulty, height, seed_hash ... adjust as ziond provides)
         const result = {
           blocktemplate_blob: r.blocktemplate_blob || r.template || '',
@@ -40,17 +57,54 @@ app.post('/json_rpc', async (req, res) => {
           seed_hash: r.seed_hash || '',
           reserved_offset: r.reserved_offset || 0
         };
-        return res.json({ jsonrpc: '2.0', id, result });
+        return { jsonrpc: '2.0', id, result };
       }
-      case 'submit_block': {
-        const r = await zionRpc('submit_block', { blob: params && params[0] ? params[0] : params?.blob });
-        return res.json({ jsonrpc: '2.0', id, result: r || true });
+      // Submit block aliases
+  case 'submitblock': {
+        const blob = Array.isArray(params) ? params[0] : (params && (params.blob || params.block)) || undefined;
+        const r = await zionRpc('submit_block', { blob });
+        return { jsonrpc: '2.0', id, result: r || true };
       }
-      default: {
-        return res.status(501).json({ jsonrpc: '2.0', id, error: { code: -32601, message: 'Method not implemented in shim' } });
+      // Optional helpers used by some pools
+  case 'getblockcount': {
+        const r = await zionRpc('get_height');
+        return { jsonrpc: '2.0', id, result: { count: r.height } };
       }
+      case 'getlastblockheader': {
+        try {
+          const r = await zionRpc('get_last_block_header');
+          return { jsonrpc: '2.0', id, result: r };
+        } catch (e) {
+          // Fallback: return minimal header
+          const h = await zionRpc('get_height');
+          return { jsonrpc: '2.0', id, result: { block_header: { height: h.height } } };
+        }
+      }
+      default:
+        return { jsonrpc: '2.0', id, error: { code: -32601, message: 'Method not implemented in shim' } };
+  }
+}
+
+app.post('/json_rpc', async (req, res) => {
+  const body = req.body;
+  try {
+    // Simple logging of incoming methods for debugging
+    if (Array.isArray(body)) {
+      console.log('shim batch size=', body.length, 'methods=', body.map(x => x && x.method));
+      const results = [];
+      for (const call of body) {
+        const out = await handleSingle(call.id, call.method, call.params);
+        results.push(out);
+      }
+      return res.json(results);
+    } else {
+      const { id, method, params } = body || {};
+      console.log('shim method=', method);
+      const out = await handleSingle(id, method, params);
+      return res.status(out.error ? (out.error.code === -32601 ? 501 : 500) : 200).json(out);
     }
   } catch (e) {
+    const id = (body && body.id) || '0';
     return res.status(500).json({ jsonrpc: '2.0', id, error: { code: -32000, message: e.message || 'shim error' } });
   }
 });

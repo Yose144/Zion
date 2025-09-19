@@ -1,4 +1,4 @@
-ARG UZI_POOL_REPO
+ARG UZI_POOL_REPO=https://github.com/zone117x/node-cryptonote-pool.git
 ARG UZI_POOL_BRANCH=master
 
 FROM node:20-alpine AS base
@@ -18,4 +18,5 @@ ENV POOL_CONFIG=/config/config.json
 ENV COINS_DIR=/config/coins
 
 EXPOSE 3333
-CMD ["npm", "start"]
+# Většina CryptoNote Node.js poolů startuje přes init.js
+CMD ["node", "init.js"]

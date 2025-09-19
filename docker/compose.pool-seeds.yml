@@ -1,0 +1,87 @@
+version: "3.8"
+
+networks:
+  zion-seeds:
+    name: zion-seeds
+    driver: bridge
+
+services:
+  seed1:
+    image: zion:production-fixed
+    container_name: zion-seed1
+    restart: unless-stopped
+    environment:
+      - ZION_MODE=daemon
+      - ZION_LOG_LEVEL=info
+    command: [
+      "/usr/local/bin/ziond",
+      "--data-dir", "/home/zion/.zion",
+      "--p2p-bind-port", "18080",
+      "--rpc-bind-port", "18081",
+      "--rpc-bind-ip", "0.0.0.0",
+      "--log-level", "2"
+    ]
+    volumes:
+      - seed1-data:/home/zion/.zion
+    networks:
+      - zion-seeds
+
+  seed2:
+    image: zion:production-fixed
+    container_name: zion-seed2
+    restart: unless-stopped
+    environment:
+      - ZION_MODE=daemon
+      - ZION_LOG_LEVEL=info
+    command: [
+      "/usr/local/bin/ziond",
+      "--data-dir", "/home/zion/.zion",
+      "--p2p-bind-port", "18080",
+      "--rpc-bind-port", "18081",
+      "--rpc-bind-ip", "0.0.0.0",
+      "--seed-node", "zion-seed1:18080",
+      "--log-level", "2"
+    ]
+    volumes:
+      - seed2-data:/home/zion/.zion
+    depends_on:
+      - seed1
+    networks:
+      - zion-seeds
+
+  pool:
+    image: zion:production-fixed
+    container_name: zion-pool
+    restart: unless-stopped
+    environment:
+      - ZION_MODE=pool
+      - POOL_PORT=3333
+      - POOL_DIFFICULTY=1000
+      - POOL_FEE=1
+      - ZION_LOG_LEVEL=info
+    command: [
+      "/usr/local/bin/ziond",
+      "--data-dir", "/home/zion/.zion",
+      "--pool-mode",
+      "--pool-port", "3333",
+      "--pool-bind-ip", "0.0.0.0",
+      "--seed-node", "zion-seed1:18080",
+      "--log-level", "2"
+    ]
+    volumes:
+      - pool-data:/home/zion/.zion
+    depends_on:
+      - seed1
+      - seed2
+    ports:
+      - "3333:3333"   # Expose stratum publicly
+    networks:
+      - zion-seeds
+
+volumes:
+  seed1-data:
+    driver: local
+  seed2-data:
+    driver: local
+  pool-data:
+    driver: local

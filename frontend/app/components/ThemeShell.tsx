@@ -34,7 +34,8 @@ export default function ThemeShell({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const onResize = () => {
-      const mobile = window.innerWidth < 860
+      // Treat tablets as mobile for nav (hamburger)
+      const mobile = window.innerWidth < 1100
       setIsMobile(mobile)
       if (!mobile) setMobileOpen(false)
     }

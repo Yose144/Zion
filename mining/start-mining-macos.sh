@@ -6,15 +6,15 @@
 echo "🍎 ZION Mining for macOS Apple M1/ARM64"
 echo "Genesis Block Hash: d763b61e4e542a6973c8f649deb228e116bcf3ee099cec92be33efe288829ae1"
 echo "Mining Address: ajmqontZjiVUmtNjQu1RNUYq1RZgd5EDodX3qgjcaTMoMzG8EkG4bVPgLhEgudBoH82fQU1iZVw6XPfddKWAHDdA3x92ToH4uo"
-echo "Server: 91.98.122.165:18081"
+echo "Pool: 91.98.122.165:3333"
 echo ""
 
 # Check if server is accessible
-echo "Checking server connection..."
-if curl -s http://91.98.122.165:18081/getinfo > /dev/null; then
-    echo "✅ Server is accessible"
+echo "Checking pool connection..."
+if nc -z 91.98.122.165 3333; then
+    echo "✅ Pool is reachable"
 else
-    echo "❌ Server is not accessible"
+    echo "❌ Pool is not reachable"
     exit 1
 fi
 

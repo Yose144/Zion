@@ -1,3 +1,7 @@
 [submodule "external/randomx"]
 	path = external/randomx
 	url = https://github.com/tevador/RandomX.git
+[submodule "zion-cryptonote"]
+	path = zion-cryptonote
+	url = https://github.com/Yose144/zion-cryptonote.git
+	branch = zion-mainnet

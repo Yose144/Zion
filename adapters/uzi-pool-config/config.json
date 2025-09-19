@@ -26,7 +26,7 @@
   "blockUnlocker": { "enabled": false, "interval": 30, "depth": 60, "poolFee": 0, "devDonation": 0, "coreDevDonation": 0 },
   "api": { "enabled": false, "hashrateWindow": 600, "updateInterval": 5, "port": 8117, "blocks": 30, "payments": 30, "password": "disabled" },
 
-  "daemon": { "host": "zion-rpc-shim", "port": 18089 },
-  "wallet": { "host": "zion-rpc-shim", "port": 18089 },
+  "daemon": { "host": "seed1", "port": 18081 },
+  "wallet": { "host": "seed1", "port": 18081 },
   "redis": { "host": "redis", "port": 6379, "auth": null }
 }

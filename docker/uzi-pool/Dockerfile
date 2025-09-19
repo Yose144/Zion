@@ -2,16 +2,28 @@ ARG UZI_POOL_REPO=https://github.com/zone117x/node-cryptonote-pool.git
 ARG UZI_POOL_BRANCH=master
 
 FROM node:12-buster AS base
-RUN apt-get update && apt-get install -y git python make g++ && rm -rf /var/lib/apt/lists/*
+# Debian buster je na EOL – kompletně přepíšeme sources.list na archivní mirror a vypneme kontrolu platnosti
+RUN set -eux; \
+	echo 'deb http://archive.debian.org/debian buster main contrib non-free' > /etc/apt/sources.list; \
+	echo 'deb-src http://archive.debian.org/debian buster main contrib non-free' >> /etc/apt/sources.list; \
+	echo 'deb http://archive.debian.org/debian-security buster/updates main contrib non-free' >> /etc/apt/sources.list; \
+	printf 'Acquire::Check-Valid-Until \"false\";\nAcquire::AllowInsecureRepositories \"true\";\n' > /etc/apt/apt.conf.d/99no-check-valid-until; \
+	apt-get -o Acquire::Check-Valid-Until=false update; \
+	apt-get install -y --no-install-recommends git python make g++; \
+	rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 ARG UZI_POOL_REPO
 ARG UZI_POOL_BRANCH
 RUN test -n "$UZI_POOL_REPO" || (echo "UZI_POOL_REPO build-arg is required" && exit 1)
-RUN git clone -b "$UZI_POOL_BRANCH" --depth=1 "$UZI_POOL_REPO" .
+# Pokus o klon cílového repa, případně fallback na zone117x (kompatibilní)
+RUN git clone -b "$UZI_POOL_BRANCH" --depth=1 "$UZI_POOL_REPO" . \
+	|| git clone -b master --depth=1 https://github.com/zone117x/node-cryptonote-pool.git .
 
 # Install dependencies
-RUN npm install --production || npm install --production
+RUN npm config set python /usr/bin/python && \
+	npm config set jobs 2 && \
+	npm install --production || npm install --production
 
 # Configs budou přimountované jako volume na /config (viz compose)
 ENV POOL_CONFIG=/config/config.json

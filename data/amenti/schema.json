@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://zion.local/schema/amenti-library.json",
+  "title": "Amenti Library Manifest",
+  "type": "object",
+  "required": ["version", "books"],
+  "properties": {
+    "version": {"type": "string"},
+    "updated": {"type": "string"},
+    "source": {"type": "string", "format": "uri"},
+    "books": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "aliases": {"type": "array", "items": {"type": "string"}},
+          "authors": {"type": "array", "items": {"type": "string"}},
+          "language": {"type": "string"},
+          "categories": {"type": "array", "items": {"type": "string"}},
+          "description": {"type": "string"},
+          "landingPage": {"type": "string"},
+          "downloads": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["url"],
+              "properties": {
+                "url": {"type": "string"},
+                "type": {"type": "string"},
+                "note": {"type": "string"}
+              }
+            }
+          },
+          "images": {"type": "array", "items": {"type": "string"}},
+          "tags": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "url"],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "url": {"type": "string"},
+          "license": {"type": "string"},
+          "source": {"type": "string"},
+          "tags": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "references": {"type": "object"}
+  }
+}

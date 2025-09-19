@@ -21,10 +21,6 @@ scripts/convert_to_submodule.sh https://github.com/YOUR_GH_USER/zion-cryptonote.
 ```
 
 Skript provede:
-- push větve `zion-mainnet` z adresáře `zion-cryptonote` do vašeho vzdáleného repozitáře,
-- odstranění stávajícího gitlinku ze stagingu a přidání korektního git submodulu se zadanou URL a větví,
-- aktualizaci `.gitmodules` s `branch = zion-mainnet`,
-- commit změn v hlavním repozitáři.
 
 Pokud chcete zachovat jiný název větve, předejte ho jako druhý argument skriptu.
 
@@ -32,18 +28,20 @@ Poznámka: Dokud neprovedete kroky výše, klony vašeho hlavního repozitáře 
 
 ## Komponenty
 
-- **ziond** - Hlavní daemon blockchain sítě
-- **zion_miner** - Mining daemon pro těžbu
-- **zion_wallet** - Peněženka pro správu ZION coinů
+
+### Amenti Library & dApp
+- Data manifest: `data/amenti/library.json`
+- Integration guide: `docs/dapp/amenti-integration.md`
+- Purpose: Provide structured metadata (titles, links, images) for the NewEarth Amenti Library within a dApp UI.
+
+### Branding
+- Draft guide: `docs/BRANDING.md`
+- Logo SVG: `assets/logos/zion.svg`
 
 ## Sestavení
 
 ### Požadavky
 
-- CMake 3.15+
-- C++17 kompatibilní kompilátor
-- OpenSSL
-- Git (pro stažení RandomX)
 
 ### macOS
 
@@ -81,10 +79,6 @@ make
 
 ## Parametry sítě
 
-- **Max supply**: 21,000,000 ZION
-- **Block time**: 2 minuty
-- **Difficulty adjustment**: Každých 720 bloků (24 hodin)
-- **Mining reward**: Počáteční 50 ZION, halvening každých 210,000 bloků
 
 ## Licencia
 

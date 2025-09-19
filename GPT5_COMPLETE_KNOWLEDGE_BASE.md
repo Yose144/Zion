@@ -289,3 +289,14 @@ curl http://localhost:18081/getheight  # Should return {"height":1,"status":"OK"
 ---
 
 *This document contains the complete knowledge base for continuing the ZION NewEarth project. All technical implementations are production-ready, all spiritual foundations are documented, and the path forward is clearly mapped for Q1 2025 and beyond.*
+
+---
+
+Appendix A: dApp Artifacts (added 2025-09-19)
+
+- Data manifest for Amenti Library: `data/amenti/library.json`
+- JSON Schema (for validation): `data/amenti/schema.json`
+- dApp integration guide: `docs/dapp/amenti-integration.md`
+- Branding draft: `docs/BRANDING.md`, primary logo: `assets/logos/zion.svg`
+
+Note: Manifest contains metadata and public links only; do not mirror full texts without permission.

@@ -1,0 +1,189 @@
+{
+  "version": "1.0",
+  "updated": "2025-09-19",
+  "source": "https://newearth.cz/V2/halls.html",
+  "license": "Metadata only; source texts/images belong to their respective authors/owners.",
+  "notes": [
+    "This manifest provides structured metadata for the dApp. Do not mirror full book contents without permission.",
+    "Downloads are provided as landing pages or specific links when publicly shared by the source.",
+    "Images reference remote URLs hosted at newearth.cz; consider caching thumbnails with consent."
+  ],
+  "books": [
+    {
+      "id": "secret-of-amenti",
+      "title": "The Secret of Amenti",
+      "aliases": ["Tajemství Amenti", "Secrect of Amenti"],
+      "authors": ["Unknown/Compilation"],
+      "language": "multi",
+      "categories": ["Esoteric", "Amenti"],
+      "description": "Core foundation text outlining Amenti cosmology and consciousness evolution.",
+      "landingPage": "https://newearth.cz/V2/halls.html",
+      "downloads": [],
+      "images": [],
+      "tags": ["Amenti", "Cosmology", "Consciousness"]
+    },
+    {
+      "id": "emerald-tablets-thoth",
+      "title": "Emerald Tablets of Thoth",
+      "aliases": ["Smaragdové desky Thotha", "Emerald Plates Thot"],
+      "authors": ["Attributed to Thoth"],
+      "language": "multi",
+      "categories": ["Hermetic", "Amenti"],
+      "description": "Hermetic-alchemical corpus with Atlantean lineage, bridging ancient wisdom and transformation.",
+      "landingPage": "https://newearth.cz/V2/halls.html",
+      "downloads": [],
+      "images": [],
+      "tags": ["Hermeticism", "Alchemy", "Atlantean"]
+    },
+    {
+      "id": "book-of-amenti-2012",
+      "title": "Book of Amenti 2012",
+      "aliases": ["Kniha Amenti 2012"],
+      "authors": ["Compilation"],
+      "language": "multi",
+      "categories": ["Amenti", "Timeline"],
+      "description": "2012–2024 activation cycle and planetary consciousness shift notes.",
+      "landingPage": "https://newearth.cz/V2/halls.html",
+      "downloads": [],
+      "images": [],
+      "tags": ["2012", "Activation", "Starseeds"]
+    },
+    {
+      "id": "cosmic-egg",
+      "title": "Cosmic Egg",
+      "aliases": ["Kosmické vejce"],
+      "authors": ["Compilation"],
+      "language": "multi",
+      "categories": ["Cosmology", "Consciousness"],
+      "description": "Multiversal model including 22 fields of consciousness (Konstanta věčnosti).",
+      "landingPage": "https://newearth.cz/V2/halls.html",
+      "downloads": [],
+      "images": [],
+      "tags": ["22 Fields", "Konstanta Večnosti", "Model"]
+    },
+    {
+      "id": "dohrman-prophecy",
+      "title": "Dohrman Prophecy",
+      "aliases": ["Dohrmanovo proroctví"],
+      "authors": ["James Mahu?", "WingMakers context"],
+      "language": "cs",
+      "categories": ["Prophecy", "WingMakers"],
+      "description": "Czech prophetic narrative aligned with global transformation themes.",
+      "landingPage": "https://projektnewearth.blogspot.com/2024/10/oraculum-18201393118.html",
+      "downloads": [
+        {
+          "url": "http://www.newearth.cz/src/Dohrmanovo-proroctvi.pdf",
+          "type": "pdf",
+          "note": "Public link referenced from blog Oraculum post."
+        }
+      ],
+      "images": [],
+      "tags": ["Prophecy", "Czech", "Transformation"]
+    },
+    {
+      "id": "ancient-arrow",
+      "title": "Ancient Arrow",
+      "aliases": ["Prastarý Šíp"],
+      "authors": ["WingMakers / James Mahu"],
+      "language": "en",
+      "categories": ["WingMakers", "Mythos"],
+      "description": "WingMakers narrative involving time capsules and advanced contact.",
+      "landingPage": "https://wingmakers.com/",
+      "downloads": [],
+      "images": [],
+      "tags": ["WingMakers", "Time Capsule", "Myth"]
+    },
+    {
+      "id": "vedabase",
+      "title": "VedaBase Online Library",
+      "aliases": ["Vedabase", "Goloka Vrindavan"],
+      "authors": ["Vedic Canon"],
+      "language": "multi",
+      "categories": ["Vedic", "Bhakti"],
+      "description": "Complete Vedic literature in digital form; path to endless love (Goloka Vrindavan).",
+      "landingPage": "https://vedabase.io/en/library/",
+      "downloads": [],
+      "images": [],
+      "tags": ["Vedas", "Bhagavata", "Bhakti"]
+    },
+    {
+      "id": "human-design-gene-keys",
+      "title": "Human Design & Gene Keys",
+      "aliases": ["Human Design", "Gene Keys", "Škola vzestupu"],
+      "authors": ["Ra Uru Hu (HD)", "Richard Rudd (GK)"],
+      "language": "multi",
+      "categories": ["Self-Discovery"],
+      "description": "Birth-data based frameworks for personal potential discovery.",
+      "landingPage": "https://home.genekeys.com/",
+      "downloads": [],
+      "images": [],
+      "tags": ["Design", "Gene Keys", "Ascension"]
+    }
+  ],
+  "images": [
+    {
+      "id": "halls-144",
+      "title": "Halls of Amenti 144",
+      "url": "https://newearth.cz/V2/img/144Halls.jpg",
+      "license": "unknown",
+      "source": "newearth.cz",
+      "tags": ["Amenti", "144", "Banner"]
+    },
+    {
+      "id": "logos-grid",
+      "title": "Logos Grid",
+      "url": "https://newearth.cz/V2/img/logos.png",
+      "license": "unknown",
+      "source": "newearth.cz",
+      "tags": ["Logos", "Glyphs"]
+    },
+    {
+      "id": "heart-2012",
+      "title": "Heart of Amenti 2012",
+      "url": "https://newearth.cz/V2/img/Heart2012.jpg",
+      "license": "unknown",
+      "source": "newearth.cz",
+      "tags": ["Amenti", "Heart", "2012"]
+    },
+    {
+      "id": "radha-krishna",
+      "title": "Sri Sri Radha Govinda",
+      "url": "https://newearth.cz/V2/img/radhakrishna.jpg",
+      "license": "unknown",
+      "source": "newearth.cz",
+      "tags": ["Vedic", "Bhakti"]
+    },
+    {
+      "id": "tibet",
+      "title": "Tibet",
+      "url": "https://newearth.cz/V2/img/tibet.jpg",
+      "license": "unknown",
+      "source": "newearth.cz",
+      "tags": ["Tibet", "Buddhism"]
+    },
+    {
+      "id": "varja",
+      "title": "Vajra Symbol",
+      "url": "https://newearth.cz/V2/img/varja.png",
+      "license": "unknown",
+      "source": "newearth.cz",
+      "tags": ["Vajra", "Dorje"]
+    },
+    {
+      "id": "org1",
+      "title": "Org Image 1",
+      "url": "https://newearth.cz/V2/img/org1.jpg",
+      "license": "unknown",
+      "source": "newearth.cz",
+      "tags": ["Org", "Gallery"]
+    }
+  ],
+  "references": {
+    "blogRoot": "https://projektnewearth.blogspot.com/",
+    "hallsPage": "https://newearth.cz/V2/halls.html",
+    "dohrmanProphecyPdf": "http://www.newearth.cz/src/Dohrmanovo-proroctvi.pdf",
+    "vedabase": "https://vedabase.io/en/library/",
+    "humanDesign": "https://humandesign.cz/",
+    "geneKeys": "https://home.genekeys.com/"
+  }
+}

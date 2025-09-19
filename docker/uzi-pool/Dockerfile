@@ -30,5 +30,8 @@ ENV POOL_CONFIG=/config/config.json
 ENV COINS_DIR=/config/coins
 
 EXPOSE 3333
-# Většina CryptoNote Node.js poolů startuje přes init.js
-CMD ["node", "init.js"]
+
+# Entrypoint: při startu propojí konfigy z /config do /app a spustí pool
+RUN printf '#!/bin/sh\nset -e\n\nif [ -f "$POOL_CONFIG" ]; then\n  ln -sf "$POOL_CONFIG" /app/config.json;\nfi\nif [ -d "$COINS_DIR" ]; then\n  ln -sfn "$COINS_DIR" /app/coins;\nfi\nexec node init.js\n' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

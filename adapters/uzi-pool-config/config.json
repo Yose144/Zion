@@ -4,7 +4,7 @@
   "defaultPool": {
     "enabled": true,
     "coin": "zion.json",
-    "address": "ZION_WALLET_ADDRESS_PLACEHOLDER",
+    "address": "Z7v1oJtV3pQAYt2oR9wA3sL5xTnQmBkR6yU8iN2mK4hP9eD3cF7aJ1kL2pQ9wE7rT6yU8iN2mK4hP9eD3cF7aJ1kL2pQ9wE7rT6", 
     "fixedDiff": null,
     "stratum": {
       "enabled": true,

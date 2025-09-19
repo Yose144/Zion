@@ -2,10 +2,13 @@
 
 FROM --platform=linux/amd64 ubuntu:22.04 AS build
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential cmake git pkg-config \
-    libboost-all-dev libssl-dev libpthread-stubs0-dev libc6-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Prefer gzip indexes to avoid lz4 decompression issues in some environments
+RUN echo 'Acquire::CompressionTypes::Order { "gz"; };' > /etc/apt/apt.conf.d/99use-gzip && \
+        (apt-get update || (sleep 3 && apt-get update)) && \
+        apt-get install -y --no-install-recommends \
+            build-essential cmake git pkg-config \
+            libboost-all-dev libssl-dev libpthread-stubs0-dev libc6-dev && \
+        rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
 COPY zion-cryptonote/ /src/zion-cryptonote/
@@ -16,9 +19,11 @@ RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 
 FROM --platform=linux/amd64 ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libboost-all-dev libc6 \
-    && rm -rf /var/lib/apt/lists/*
+RUN echo 'Acquire::CompressionTypes::Order { "gz"; };' > /etc/apt/apt.conf.d/99use-gzip && \
+        (apt-get update || (sleep 3 && apt-get update)) && \
+            apt-get install -y --no-install-recommends \
+                libboost-all-dev libc6 procps && \
+        rm -rf /var/lib/apt/lists/*
 
 # Binaries
 COPY --from=build /src/zion-cryptonote/build/src/ziond /usr/local/bin/ziond

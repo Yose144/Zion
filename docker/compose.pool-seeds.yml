@@ -84,6 +84,28 @@ services:
     networks:
       - zion-seeds
 
+  uzi-pool:
+    build:
+      context: ./uzi-pool
+      dockerfile: Dockerfile
+      args:
+        # TODO: Případně změnit na konkrétní fork/repo Uzi-Pool
+        - UZI_POOL_REPO=https://github.com/uziprotocol/uzipool.git
+        - UZI_POOL_BRANCH=master
+    image: zion:uzi-pool
+    container_name: zion-uzi-pool
+    restart: unless-stopped
+    environment:
+      - POOL_CONFIG=/config/config.json
+    volumes:
+      - ../adapters/uzi-pool-config:/config:ro
+    depends_on:
+      - rpc-shim
+    ports:
+      - "3333:3333"
+    networks:
+      - zion-seeds
+
 volumes:
   seed1-data:
     driver: local

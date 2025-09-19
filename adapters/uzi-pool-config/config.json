@@ -1,0 +1,15 @@
+{
+  "logLevel": "info",
+  "clusterForks": "auto",
+  "defaultPool": {
+    "enabled": true,
+    "coin": "zion.json",
+    "address": "ZION_WALLET_ADDRESS_PLACEHOLDER",
+    "fixedDiff": null,
+    "stratum": {
+      "enabled": true,
+      "port": 3333,
+      "host": "0.0.0.0"
+    }
+  }
+}

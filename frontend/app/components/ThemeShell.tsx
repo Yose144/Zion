@@ -16,6 +16,8 @@ function getInitialTheme(): Theme {
 
 export default function ThemeShell({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark')
+  const [isMobile, setIsMobile] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     setTheme(getInitialTheme())
@@ -27,6 +29,19 @@ export default function ThemeShell({ children }: { children: React.ReactNode }) 
       document.documentElement.setAttribute('data-theme', theme)
     }
   }, [theme])
+
+  // Responsive breakpoint detection
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onResize = () => {
+      const mobile = window.innerWidth < 860
+      setIsMobile(mobile)
+      if (!mobile) setMobileOpen(false)
+    }
+    onResize()
+    window.addEventListener('resize', onResize, { passive: true })
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const ACCENT = theme === 'dark' ? '#00ff41' : '#006b1c'
   const LINK = theme === 'dark' ? '#8aff9a' : '#0d7a30'
@@ -62,7 +77,7 @@ export default function ThemeShell({ children }: { children: React.ReactNode }) 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', color: fg }}>
       <div style={{ ...bgLayerStyle, zIndex: 0 }} />
-      {theme === 'dark' && <DataRain />}
+      {theme === 'dark' && !isMobile && <DataRain />}
       <header
         style={{
           padding: '8px 20px 16px 20px',
@@ -78,15 +93,17 @@ export default function ThemeShell({ children }: { children: React.ReactNode }) 
           overflow: 'hidden',
         }}
       >
-        <InteractiveEarth theme={theme} height={200} />
+        <InteractiveEarth theme={theme} height={isMobile ? 120 : 200} />
         <div style={{ position:'relative', zIndex:3, width:'100%' }}>
-          <div style={{ display:'flex', justifyContent:'flex-end', gap:12, marginBottom:8 }}>
-            <a href="https://newearth.cz/#v3zion" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>V3 ZION</a>
-            <a href="https://newearth.cz/wp/" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>SHOP</a>
-            <a href="https://newearth.cz/#support" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>SUPPORT</a>
-            <a href="https://newearth.cz/#contact" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>CONTACT</a>
-            <a href="https://newearth.cz/V2/main.html" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>V2 WEB</a>
-          </div>
+          {!isMobile && (
+            <div style={{ display:'flex', justifyContent:'flex-end', gap:12, marginBottom:8 }}>
+              <a href="https://newearth.cz/#v3zion" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>V3 ZION</a>
+              <a href="https://newearth.cz/wp/" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>SHOP</a>
+              <a href="https://newearth.cz/#support" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>SUPPORT</a>
+              <a href="https://newearth.cz/#contact" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>CONTACT</a>
+              <a href="https://newearth.cz/V2/main.html" style={{ color: LINK, textDecoration:'none', fontSize:12 }}>V2 WEB</a>
+            </div>
+          )}
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <img src="/logo-zion-amenti.svg" alt="ZION" width={40} height={40} />
             <a
@@ -102,20 +119,39 @@ export default function ThemeShell({ children }: { children: React.ReactNode }) 
             >
               ZION
             </a>
-            <nav style={{ marginLeft: 16, display:'flex', gap:16, flexWrap:'wrap' }}>
-              <a href="/amenti" style={{ color: LINK, textDecoration: 'none' }}>Amenti Library</a>
-              <a href="https://newearth.cz/V2/main.html" style={{ color: LINK, textDecoration: 'none' }}>Home</a>
-              <a href="https://newearth.cz/V2/camp.html" style={{ color: LINK, textDecoration: 'none' }}>Camps</a>
-              <a href="https://newearth.cz/V2/arts.html" style={{ color: LINK, textDecoration: 'none' }}>Arts</a>
-              <a href="https://newearth.cz/V2/halls.html" style={{ color: LINK, textDecoration: 'none' }}>Amenti</a>
-              <a href="https://newearth.cz/wp/" style={{ color: LINK, textDecoration: 'none' }}>eShop</a>
-              <a href="https://newearth.cz/V2/blog.html" style={{ color: LINK, textDecoration: 'none' }}>Blog</a>
-              <a href="https://newearth.cz/V2/links.html" style={{ color: LINK, textDecoration: 'none' }}>Links</a>
-              <a href="https://newearth.cz/V2/about.html" style={{ color: LINK, textDecoration: 'none' }}>About</a>
-              <a href="https://newearth.cz/V2/dev.html" style={{ color: LINK, textDecoration: 'none' }}>DeV</a>
-            </nav>
+            {!isMobile && (
+              <nav style={{ marginLeft: 16, display:'flex', gap:16, flexWrap:'wrap' }}>
+                <a href="/amenti" style={{ color: LINK, textDecoration: 'none' }}>Amenti Library</a>
+                <a href="https://newearth.cz/V2/main.html" style={{ color: LINK, textDecoration: 'none' }}>Home</a>
+                <a href="https://newearth.cz/V2/camp.html" style={{ color: LINK, textDecoration: 'none' }}>Camps</a>
+                <a href="https://newearth.cz/V2/arts.html" style={{ color: LINK, textDecoration: 'none' }}>Arts</a>
+                <a href="https://newearth.cz/V2/halls.html" style={{ color: LINK, textDecoration: 'none' }}>Amenti</a>
+                <a href="https://newearth.cz/wp/" style={{ color: LINK, textDecoration: 'none' }}>eShop</a>
+                <a href="https://newearth.cz/V2/blog.html" style={{ color: LINK, textDecoration: 'none' }}>Blog</a>
+                <a href="https://newearth.cz/V2/links.html" style={{ color: LINK, textDecoration: 'none' }}>Links</a>
+                <a href="https://newearth.cz/V2/about.html" style={{ color: LINK, textDecoration: 'none' }}>About</a>
+                <a href="https://newearth.cz/V2/dev.html" style={{ color: LINK, textDecoration: 'none' }}>DeV</a>
+              </nav>
+            )}
             <div style={{ marginLeft: 'auto', display:'flex', alignItems:'center', gap:12 }}>
-              <Presence theme={theme} />
+              {!isMobile && <Presence theme={theme} />}
+              {isMobile && (
+                <button
+                  onClick={() => setMobileOpen((o) => !o)}
+                  aria-expanded={mobileOpen}
+                  aria-label="Otevřít menu"
+                  style={{
+                    background: 'transparent',
+                    color: fg,
+                    border: `1px solid ${BORDER}`,
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ☰ Menu
+                </button>
+              )}
               <button
                 onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
                 aria-label="Přepnout motiv"
@@ -132,6 +168,31 @@ export default function ThemeShell({ children }: { children: React.ReactNode }) 
               </button>
             </div>
           </div>
+          {isMobile && mobileOpen && (
+            <div style={{
+              marginTop: 10,
+              borderTop: `1px solid ${BORDER}`,
+              paddingTop: 10,
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 10,
+            }}>
+              <a href="/amenti" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>Amenti Library</a>
+              <a href="https://newearth.cz/V2/main.html" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>Home</a>
+              <a href="https://newearth.cz/V2/camp.html" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>Camps</a>
+              <a href="https://newearth.cz/V2/arts.html" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>Arts</a>
+              <a href="https://newearth.cz/V2/halls.html" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>Amenti</a>
+              <a href="https://newearth.cz/wp/" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>eShop</a>
+              <a href="https://newearth.cz/V2/blog.html" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>Blog</a>
+              <a href="https://newearth.cz/V2/links.html" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>Links</a>
+              <a href="https://newearth.cz/V2/about.html" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>About</a>
+              <a href="https://newearth.cz/V2/dev.html" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration: 'none' }}>DeV</a>
+              <div style={{ gridColumn: '1 / -1', display:'flex', justifyContent:'space-between', alignItems:'center', marginTop: 6 }}>
+                <Presence theme={theme} />
+                <a href="https://newearth.cz/#v3zion" onClick={() => setMobileOpen(false)} style={{ color: LINK, textDecoration:'none', fontSize:12 }}>V3 ZION</a>
+              </div>
+            </div>
+          )}
         </div>
       </header>
       <main style={{ maxWidth: 980, margin: '24px auto', padding: '0 16px', position: 'relative', zIndex: 2 }}>{children}</main>

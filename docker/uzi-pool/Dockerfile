@@ -13,9 +13,7 @@ RUN git clone -b "$UZI_POOL_BRANCH" --depth=1 "$UZI_POOL_REPO" .
 # Install dependencies
 RUN npm install --production || npm install --production
 
-# Copy our ZION configs (mounted at runtime too)
-COPY ../../adapters/uzi-pool-config /config
-
+# Configs budou přimountované jako volume na /config (viz compose)
 ENV POOL_CONFIG=/config/config.json
 ENV COINS_DIR=/config/coins
 

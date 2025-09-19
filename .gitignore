@@ -36,3 +36,13 @@ docker/seed1/data/
 docker/seed1/logs/
 docker/seed2/data/
 docker/seed2/logs/
+
+# Web build artifacts
+web/node_modules/
+web/.next/
+web/out/
+web/dist/
+
+# Docker data volumes
+data/
+logs/

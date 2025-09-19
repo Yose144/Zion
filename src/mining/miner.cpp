@@ -545,11 +545,14 @@ int main(int argc, char* argv[]) {
             mobile = true;
             if (thread_count > 2) thread_count = std::max(1, thread_count/2); // snížit zátěž
         } else if (std::string(argv[i]) == "--help") {
-            std::cout << "Použití: zion_miner [--threads N] [--light] [--pool host:port] [--address ADDR] [--help]" << std::endl;
+            std::cout << "Použití: zion_miner [--threads N] [--light] [--pool host:port] [--address ADDR] [--user USER] [--pass PASS] [--mobile] [--help]" << std::endl;
             std::cout << "  --threads N    Počet těžebních vláken (výchozí: " << thread_count << ")" << std::endl;
             std::cout << "  --light        Light mode (bez RandomX datasetu; rychlejší start, nižší výkon)" << std::endl;
             std::cout << "  --pool h:p     Připojit se k poolu" << std::endl;
             std::cout << "  --address A    Adresa pro odměny (při solo miningu ignorováno)" << std::endl;
+            std::cout << "  --user USER    Jméno workera pro pool autentizaci" << std::endl;
+            std::cout << "  --pass PASS    Heslo pro pool autentizaci" << std::endl;
+            std::cout << "  --mobile       Mobilní režim (menší CHUNK, doporučuje méně vláken)" << std::endl;
             std::cout << "  --help         Zobrazit tuto nápovědu" << std::endl;
             return 0;
         }

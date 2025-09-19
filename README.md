@@ -4,11 +4,31 @@ ZION je vlastní kryptoměna založená na Proof of Work algoritmu RandomX, opti
 
 ## Vlastnosti
 
-- **Algoritmus**: RandomX (stejný jako Monero)
-- **Typ**: Proof of Work
-- **Mining**: Optimalizováno pro CPU
-- **Síť**: P2P blockchain
-- **Jazyk**: C++17
+
+## Zion-Cryptonote jako submodul (doporučeno)
+
+Aktuálně je složka `zion-cryptonote` uvnitř tohoto repozitáře jako „embedded repo“ (gitlink bez .gitmodules). Doporučený stav je mít ji jako plnohodnotný git submodul, aby šla jednoduše verzovat a updatovat.
+
+Postup dokončení konverze na submodul:
+
+1) Na GitHubu vytvořte prázdný repozitář (např. `Yose144/zion-cryptonote`).
+
+2) Spusťte skript, který pushne lokální větev s úpravami a z drženého „embedded“ repozitáře vytvoří submodul:
+
+```bash
+# Nahraďte URL vlastní URL nově vytvořeného repozitáře
+scripts/convert_to_submodule.sh https://github.com/YOUR_GH_USER/zion-cryptonote.git zion-mainnet
+```
+
+Skript provede:
+- push větve `zion-mainnet` z adresáře `zion-cryptonote` do vašeho vzdáleného repozitáře,
+- odstranění stávajícího gitlinku ze stagingu a přidání korektního git submodulu se zadanou URL a větví,
+- aktualizaci `.gitmodules` s `branch = zion-mainnet`,
+- commit změn v hlavním repozitáři.
+
+Pokud chcete zachovat jiný název větve, předejte ho jako druhý argument skriptu.
+
+Poznámka: Dokud neprovedete kroky výše, klony vašeho hlavního repozitáře nebudou automaticky obsahovat obsah `zion-cryptonote`.
 
 ## Komponenty
 

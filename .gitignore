@@ -13,7 +13,7 @@ Makefile
 
 # Logs
 *.log
-logs/
+# Remove logs/ from ignore to allow documentation
 /daemon_test.log
 /miner_test.log
 

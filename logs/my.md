@@ -2,7 +2,8 @@ import all ./*.md
 
 
 
-
+NESNAZ SE LZICI OHNOUT JE TO NEMOZNE, SPIS SI UVEDOM PRAVDU : LZICE TU NEJNI !!!!
+STARGATE 3333 je otevren
 
 
 Tady je možný postup:

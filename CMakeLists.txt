@@ -35,6 +35,9 @@ add_library(zion_core STATIC
     ${CRYPTO_SOURCES}
 )
 
+# Set position-independent code for shared library compatibility
+set_property(TARGET zion_core PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries(zion_core
     OpenSSL::SSL
     OpenSSL::Crypto
@@ -71,6 +74,31 @@ if(BUILD_MINER_V2)
         src/mining/miner_v2.cpp
     )
     target_link_libraries(zion_miner_v2 zion_core)
+endif()
+
+# Mining C library for mobile bindings
+option(BUILD_MINER_LIB "Build miner C library" ON)
+if(BUILD_MINER_LIB)
+    add_library(zion_miner_c SHARED
+        src/mining/miner_c.cpp
+    )
+    target_link_libraries(zion_miner_c zion_core)
+    target_include_directories(zion_miner_c PUBLIC include)
+    
+    # Set library properties
+    set_target_properties(zion_miner_c PROPERTIES
+        VERSION 1.0.0
+        SOVERSION 1
+        PUBLIC_HEADER include/zion_miner_c.h
+    )
+    
+    # Also build static version
+    add_library(zion_miner_c_static STATIC
+        src/mining/miner_c.cpp
+    )
+    target_link_libraries(zion_miner_c_static zion_core)
+    target_include_directories(zion_miner_c_static PUBLIC include)
+    set_target_properties(zion_miner_c_static PROPERTIES OUTPUT_NAME zion_miner_c)
 endif()
 
 # Wallet application

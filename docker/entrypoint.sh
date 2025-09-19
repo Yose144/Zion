@@ -17,8 +17,18 @@ POOL_FEE=${POOL_FEE:-1}
 P2P_PORT=${P2P_PORT:-18080}
 RPC_PORT=${RPC_PORT:-18081}
 
-# Create data directory if it doesn't exist
-mkdir -p "$ZION_DATA_DIR"
+# Ensure data directory exists with correct permissions
+echo "Setting up data directory permissions..."
+if [ ! -d "$ZION_DATA_DIR" ]; then
+    mkdir -p "$ZION_DATA_DIR"
+fi
+
+# If running as root, fix ownership and then switch to zion user
+if [ "$(id -u)" = "0" ]; then
+    chown -R zion:zion "$ZION_DATA_DIR"
+    echo "Switching to zion user..."
+    exec gosu zion "$0" "$@"
+fi
 
 # Decide if pool should be enabled
 POOL_ENABLE=${POOL_ENABLE:-}

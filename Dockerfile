@@ -39,12 +39,13 @@ RUN rm -f CMakeCache.txt && \
 # Runtime stage
 FROM ubuntu:22.04
 
-# Install runtime dependencies
+# Install runtime dependencies including gosu
 RUN apt-get update && apt-get install -y \
     libssl3 \
     ca-certificates \
     curl \
     netcat-openbsd \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user

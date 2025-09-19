@@ -19,6 +19,9 @@ RUN test -n "$UZI_POOL_REPO" || (echo "UZI_POOL_REPO build-arg is required" && e
 # Pokus o klon cílového repa, případně fallback na zone117x (kompatibilní)
 RUN git clone -b "$UZI_POOL_BRANCH" --depth=1 "$UZI_POOL_REPO" . \
 	|| git clone -b master --depth=1 https://github.com/zone117x/node-cryptonote-pool.git .
+# Některé závislosti v package.json používají protokol git:// – nahradíme za https:// a nastavíme git rewrite
+RUN sed -ri 's|git://github.com/|https://github.com/|g' package.json && \
+	git config --global url."https://github.com/".insteadOf git://github.com/
 
 # Install dependencies
 RUN npm config set python /usr/bin/python && \

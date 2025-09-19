@@ -1,13 +1,19 @@
 #!/bin/bash
 
-# Zion Pool Deployment Script for 91.98.122.165
-# Usage: ssh root@91.98.122.165 'bash -s' < deploy-hetzner.sh
+# ZION Production Server Deployment to Hetzner VPS
+# Updated: 19. září 2025 - Production Ready Version
+# Usage: ./deploy-hetzner.sh [server-ip] [user]
 
 set -e
 
-SERVER_IP="91.98.122.165"
+SERVER_IP="${1:-91.98.122.165}"
+SERVER_USER="${2:-root}"
 
-echo "================================================"
+echo "🚀 ZION Production Deployment to Hetzner VPS"
+echo "============================================="
+echo "Target: $SERVER_USER@$SERVER_IP"
+echo "Date: $(date)"
+echo ""
 echo "🚀 Zion Pool Deployment for Hetzner Server"
 echo "📍 Server IP: $SERVER_IP"
 echo "================================================"

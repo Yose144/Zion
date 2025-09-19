@@ -1,0 +1,70 @@
+# Lightweight production build for ZION CryptoNote
+FROM --platform=linux/amd64 ubuntu:22.04 AS build
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install minimal build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        git \
+        libboost-system-dev \
+        libboost-filesystem-dev \
+        libboost-thread-dev \
+        libboost-date-time-dev \
+        libboost-chrono-dev \
+        libboost-regex-dev \
+        libboost-serialization-dev \
+        libboost-program-options-dev \
+        libssl-dev \
+        pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY zion-cryptonote/ /src/zion-cryptonote/
+
+WORKDIR /src/zion-cryptonote
+RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build build -j $(nproc)
+
+# Lightweight runtime stage
+FROM --platform=linux/amd64 ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libboost-system1.74.0 \
+        libboost-filesystem1.74.0 \
+        libboost-thread1.74.0 \
+        libboost-date-time1.74.0 \
+        libboost-chrono1.74.0 \
+        libboost-regex1.74.0 \
+        libboost-serialization1.74.0 \
+        libboost-program-options1.74.0 \
+        libssl3 \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -u 1000 zion && \
+    mkdir -p /data /config && \
+    chown -R zion:zion /data /config
+
+# Copy binaries from build stage
+COPY --from=build /src/zion-cryptonote/build/src/zion* /usr/local/bin/
+COPY --from=build /src/zion-cryptonote/build/src/*d /usr/local/bin/
+
+# Copy configuration
+COPY config/prod.conf /config/zion.conf
+
+USER zion
+WORKDIR /data
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:18081/getinfo || exit 1
+
+EXPOSE 18080 18081
+
+CMD ["ziond", "--config-file=/config/zion.conf", "--data-dir=/data"]

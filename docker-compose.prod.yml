@@ -4,7 +4,7 @@ services:
   zion-node:
     build:
       context: .
-      dockerfile: docker/Dockerfile.zion-cryptonote.prod
+      dockerfile: docker/Dockerfile.zion-cryptonote.minimal
     image: zion:production-fixed
     container_name: zion-production
     restart: unless-stopped

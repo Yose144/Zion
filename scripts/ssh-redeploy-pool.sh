@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Note: ensure executable (chmod +x) to avoid exit code 126.
 set -euo pipefail
 
 # Remote redeploy of seed nodes, rpc-shim and uzi-pool over SSH

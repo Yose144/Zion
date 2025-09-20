@@ -47,16 +47,16 @@ export default function GenesisHub() {
   }, []);
 
   // Wallet helpers
-  const qrRef = useRef<HTMLCanvasElement | null>(null);
+  const qrBoxRef = useRef<HTMLDivElement | null>(null);
   const copyAddress = async () => {
     if (!address) return;
     await navigator.clipboard.writeText(address);
     alert("Adresa zkopírována");
   };
   const savePng = () => {
-    const canvas = qrRef.current;
+    const canvas = qrBoxRef.current?.querySelector('canvas');
     if (!canvas) return;
-    const url = canvas.toDataURL("image/png");
+    const url = (canvas as HTMLCanvasElement).toDataURL("image/png");
     const a = document.createElement("a");
     a.href = url; a.download = "zion-address.png"; a.click();
   };
@@ -164,8 +164,8 @@ export default function GenesisHub() {
         </label>
         <div style={{ marginTop: 6, fontWeight: 600 }}>Stav: {address ? (isValid ? 'Platná' : 'Neplatná') : ''}</div>
         {isValid && (
-          <div style={{ marginTop: 16, textAlign:'center' }}>
-            <QRCode value={address} size={196} includeMargin renderAs="canvas" ref={qrRef as any} />
+          <div style={{ marginTop: 16, textAlign:'center' }} ref={qrBoxRef}>
+            <QRCode value={address} size={196} includeMargin renderAs="canvas" />
             <div style={{ marginTop:8, fontFamily:'monospace' }}>{address}</div>
             <div style={{ marginTop:8, display:'flex', gap:8, justifyContent:'center' }}>
               <button onClick={copyAddress}>Kopírovat adresu</button>

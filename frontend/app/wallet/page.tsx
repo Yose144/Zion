@@ -6,7 +6,7 @@ import { isValidZionAddress } from "../utils/zion";
 export default function WalletPage() {
   const [address, setAddress] = useState("");
   const isValid = useMemo(() => isValidZionAddress(address), [address]);
-  const qrRef = useRef<HTMLCanvasElement | null>(null);
+  const qrBoxRef = useRef<HTMLDivElement | null>(null);
 
   const copy = async () => {
     if (!address) return;
@@ -15,7 +15,7 @@ export default function WalletPage() {
   };
 
   const savePng = () => {
-    const canvas = qrRef.current;
+    const canvas = qrBoxRef.current?.querySelector('canvas') as HTMLCanvasElement | null;
     if (!canvas) return;
     const url = canvas.toDataURL("image/png");
     const a = document.createElement("a");
@@ -44,8 +44,8 @@ export default function WalletPage() {
       </div>
 
       {isValid && (
-        <div style={{ marginTop: 24, textAlign: "center" }}>
-          <QRCode value={address} size={196} includeMargin={true} renderAs="canvas" ref={qrRef as any} />
+        <div style={{ marginTop: 24, textAlign: "center" }} ref={qrBoxRef}>
+          <QRCode value={address} size={196} includeMargin={true} renderAs="canvas" />
           <div style={{ marginTop: 8, fontFamily: "monospace" }}>{address}</div>
           <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent:'center' }}>
             <button onClick={copy}>Kopírovat adresu</button>

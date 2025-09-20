@@ -89,6 +89,9 @@ async function withGbtMutex(fn) {
 // Robust getblocktemplate with retry/backoff on transient busy errors
 async function getBlockTemplateRobust(wal, reserve) {
   return withGbtMutex(async () => {
+    // Enforce sane reserve size (<=255)
+    if (typeof reserve !== 'number' || reserve < 1) reserve = 4;
+    if (reserve > 255) reserve = 255;
     const variants = [
       { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
       { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
@@ -98,15 +101,15 @@ async function getBlockTemplateRobust(wal, reserve) {
       { method: 'get_block_template', params: [wal, reserve] }
     ];
     let lastErr;
-    for (let attempt = 0; attempt < 6; attempt++) {
+    for (let attempt = 0; attempt < 10; attempt++) {
       try {
         return await tryVariants(variants);
       } catch (e) {
         lastErr = e;
         if (typeof e.code !== 'undefined' && Number(e.code) === -9) {
           // Core is busy: back off and retry
-          const delay = 250 + attempt * 250;
-          console.warn(`[shim] getblocktemplate busy (-9), retrying in ${delay}ms (attempt ${attempt+1}/6)`);
+          const delay = Math.min(5000, 250 + attempt * 500);
+          console.warn(`[shim] getblocktemplate busy (-9), retrying in ${delay}ms (attempt ${attempt+1}/10)`);
           await sleep(delay);
           continue;
         }

@@ -21,8 +21,10 @@ Algorithm: RandomX (rx/0)
 
 ### Uložené konfigurační soubory:
 - `/Users/yose/Zion/config/OFFICIAL_GENESIS_WALLET.conf` - Kompletní genesis wallet info
-- `/Users/yose/Zion/config/genesis.json` - Genesis blok konfigurace
-- `/Users/yose/Zion/config/production-v2.conf` - Produkční konfigurace serveru
+- `/Users/yose/Zion/config/genesis.json` - Genesis blok konfigurace (artefakt)
+- `/Users/yose/Zion/config/production-v2.ini` - Produkční konfigurace pro ziond (INI parser)
+
+Poznámka: Soubor `config/production-v2.conf` (JSON) je určen pro Docker image a není parsován aktuálním daemonem. Pro přímé spuštění `ziond` použijte výhradně `production-v2.ini`.
 
 ## 🛠 Technické detaily implementace
 
@@ -47,7 +49,7 @@ make -j$(nproc)
 ```
 Max Supply: 144,000,000,000 ZION
 Block Time: 120 seconds
-Initial Reward: 50 ZION
+Initial Reward: 5000 ZION
 P2P Port: 18080
 RPC Port: 18081
 Stratum Port: 3333
@@ -97,7 +99,7 @@ ZION daemon is running.
 Uživatel má plný přístup k:
 1. **OFFICIAL_GENESIS_WALLET.conf** - Kompletní wallet informace
 2. **genesis.json** - Genesis blok konfigurace  
-3. **production-v2.conf** - Server konfigurace
+3. **production-v2.ini** - Server konfigurace (INI)
 4. Všechny soubory uloženy v `/Users/yose/Zion/config/`
 
 ## 🚀 Mining instrukce
@@ -148,3 +150,13 @@ Původní logy z 2025‑09‑19/20, které byly v předchozích commitech smazá
 **Deployment Date**: 2025-09-20  
 **Engineer**: GitHub Copilot  
 **Status**: PRODUCTION READY ✅
+
+## 🖥️ Systemd služba na serveru
+
+- Název: `ziond.service`
+- ExecStart: `/root/Zion/build/ziond --config /root/Zion/config/production-v2.ini`
+- Stav: enabled + running (automatický start po rebootu)
+- Kontrola:
+  - `systemctl status ziond`
+  - `journalctl -u ziond -n 200 --no-pager`
+  - `ss -lntp | egrep '(18080|3333)'`

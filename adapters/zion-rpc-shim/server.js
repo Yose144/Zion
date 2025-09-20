@@ -34,12 +34,17 @@ const MAX_BACKOFF_MS = parseInt(process.env.MAX_BACKOFF_MS || '8000', 10);
 let lastTpl = null; // { mapped, raw, height, when, wal }
 let lastErr = null; // { code, message, when }
 
-// Low-level JSON-RPC call to ziond; throws Error with optional .code
+// Low-level call to ziond; tries both JSON-RPC and REST
 async function zionRpc(method, params = {}) {
+  // First try JSON-RPC
   const payload = { jsonrpc: '2.0', id: '0', method, params };
   try {
     const { data } = await axios.post(currentRpcUrl(), payload, { timeout: 15000 });
     if (data && data.error) {
+      // If method not found in JSON-RPC, try REST fallback
+      if (data.error.code === -32601) {
+        return await zionRestFallback(method, params);
+      }
       const err = new Error(data.error.message || 'ziond error');
       if (typeof data.error.code !== 'undefined') err.code = data.error.code;
       err.data = data.error.data;
@@ -47,6 +52,10 @@ async function zionRpc(method, params = {}) {
     }
     return data && data.result;
   } catch (e) {
+    // Try REST fallback if JSON-RPC fails
+    if (e.response && e.response.data && e.response.data.error && e.response.data.error.code === -32601) {
+      return await zionRestFallback(method, params);
+    }
     // Preserve axios response error codes if present
     if (e.response && e.response.data && e.response.data.error) {
       const de = e.response.data.error;
@@ -56,6 +65,35 @@ async function zionRpc(method, params = {}) {
       throw err;
     }
     throw e;
+  }
+}
+
+// REST API fallback for methods not available in JSON-RPC
+async function zionRestFallback(method, params) {
+  const baseUrl = currentRpcUrl().replace('/json_rpc', '');
+  
+  switch (method) {
+    case 'getheight':
+    case 'get_height':
+      const { data } = await axios.get(`${baseUrl}/getheight`, { timeout: 10000 });
+      return data;
+    
+    case 'getblocktemplate':
+      // Try REST getblocktemplate
+      const wal = params.wallet_address || params.address;
+      const reserve = params.reserve_size || 8;
+      try {
+        const { data } = await axios.get(`${baseUrl}/getblocktemplate?wallet_address=${wal}&reserve_size=${reserve}`, { timeout: 15000 });
+        return data;
+      } catch (e) {
+        // If REST fails, throw busy error to trigger retry logic
+        const err = new Error('Core is busy');
+        err.code = -9;
+        throw err;
+      }
+    
+    default:
+      throw new Error(`Method ${method} not available in REST fallback`);
   }
 }
 

@@ -23,18 +23,10 @@ RUN git clone -b "$UZI_POOL_BRANCH" --depth=1 "$UZI_POOL_REPO" . \
 RUN sed -ri 's|git://github.com/|https://github.com/|g' package.json && \
 	git config --global url."https://github.com/".insteadOf git://github.com/
 
-# Fix multi-hashing for ARM64 - skip problematic packages, patch package.json
-RUN sed -i '/"multi-hashing"/d' package.json && \
-	echo "Removed multi-hashing from package.json for ARM64 compatibility"
-
-# Install dependencies - bez multi-hashing
+# Install dependencies
 RUN npm config set python /usr/bin/python && \
 	npm config set jobs 2 && \
-	npm install --production --unsafe-perm || (npm install --unsafe-perm && echo "Fallback install succeeded")
-
-# Add dummy multi-hashing if needed by pool software
-RUN mkdir -p node_modules/multi-hashing && \
-	echo "module.exports = { cryptonight: function() { throw new Error('Multi-hashing disabled for ARM64'); } };" > node_modules/multi-hashing/index.js
+	npm install --production || npm install --production
 
 # Configs budou přimountované jako volume na /config (viz compose)
 ENV POOL_CONFIG=/config/config.json

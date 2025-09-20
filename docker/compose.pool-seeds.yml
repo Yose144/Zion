@@ -14,6 +14,7 @@ services:
     image: zion:production-fixed
     container_name: zion-seed1
     restart: unless-stopped
+    command: ["/usr/local/bin/ziond", "--data-dir", "/home/zion/.zion", "--p2p-bind-port", "18080", "--rpc-bind-port", "18081", "--rpc-bind-ip", "0.0.0.0", "--enable-cors", "*"]
     environment:
       - ZION_MODE=daemon
       - ZION_LOG_LEVEL=info
@@ -33,6 +34,7 @@ services:
     image: zion:production-fixed
     container_name: zion-seed2
     restart: unless-stopped
+    command: ["/usr/local/bin/ziond", "--data-dir", "/home/zion/.zion", "--p2p-bind-port", "18080", "--rpc-bind-port", "18081", "--rpc-bind-ip", "0.0.0.0", "--enable-cors", "*"]
     environment:
       - ZION_MODE=daemon
       - ZION_LOG_LEVEL=info
@@ -48,7 +50,7 @@ services:
       - zion-seeds
 
   pool:
-    image: zion:pool-latest
+    image: zion:production-fixed
     container_name: zion-pool
     restart: unless-stopped
     user: "0:0"  # start as root; entrypoint will chown and drop to 'zion' via gosu

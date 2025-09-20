@@ -11,8 +11,8 @@
     "host": "rpc-shim",
     "port": 18089,
     "ssl": false,
-    "timeout": 5000,
-    "rpcPath": "/"
+    "timeout": 10000,
+    "rpcPath": "/json_rpc"
   },
   "blockTime": 120,
   "difficultyTarget": 120,

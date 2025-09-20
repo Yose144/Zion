@@ -22,14 +22,17 @@ app.use((req, res, next) => {
   });
 });
 
-const ZION_RPC_URL = process.env.ZION_RPC_URL || 'http://seed1:18081/json_rpc';
+const URL_ENV = process.env.ZION_RPC_URLS || process.env.ZION_RPC_URL || 'http://seed1:18081/json_rpc';
+const ZION_RPC_URLS = URL_ENV.split(',').map(s => s.trim()).filter(Boolean);
+let CUR_URL_IDX = 0;
+function currentRpcUrl() { return ZION_RPC_URLS[CUR_URL_IDX % ZION_RPC_URLS.length]; }
 const PORT = parseInt(process.env.SHIM_PORT || '18089', 10);
 
 // Low-level JSON-RPC call to ziond; throws Error with optional .code
 async function zionRpc(method, params = {}) {
   const payload = { jsonrpc: '2.0', id: '0', method, params };
   try {
-    const { data } = await axios.post(ZION_RPC_URL, payload, { timeout: 8000 });
+    const { data } = await axios.post(currentRpcUrl(), payload, { timeout: 8000 });
     if (data && data.error) {
       const err = new Error(data.error.message || 'ziond error');
       if (typeof data.error.code !== 'undefined') err.code = data.error.code;
@@ -93,9 +96,8 @@ async function withGbtMutex(fn) {
 // Robust getblocktemplate with retry/backoff on transient busy errors
 async function getBlockTemplateRobust(wal, reserve) {
   return withGbtMutex(async () => {
-    // Enforce sane reserve size (<=255)
-    if (typeof reserve !== 'number' || reserve < 1) reserve = 4;
-    if (reserve > 255) reserve = 255;
+    // Force small reserve size to reduce payload/pressure
+    reserve = 4;
     const variants = [
       // Keep only methods observed to exist in ziond; avoid underscore variant to prevent -32601 propagation
       { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
@@ -112,6 +114,11 @@ async function getBlockTemplateRobust(wal, reserve) {
           // Core is busy: back off and retry
           const delay = Math.min(5000, 250 + attempt * 500);
           console.warn(`[shim] getblocktemplate busy (-9), retrying in ${delay}ms (attempt ${attempt+1}/10)`);
+          // rotate backend to spread load if multiple URLs configured
+          if (ZION_RPC_URLS.length > 1) {
+            CUR_URL_IDX = (CUR_URL_IDX + 1) % ZION_RPC_URLS.length;
+            console.warn('[shim] rotating RPC backend to', currentRpcUrl());
+          }
           await sleep(delay);
           continue;
         }
@@ -239,9 +246,9 @@ app.post('/json_rpc', async (req, res) => {
 
 // Simple healthcheck & info
 app.get('/', (_req, res) => {
-  res.json({ status: 'ok', proxy: ZION_RPC_URL });
+  res.json({ status: 'ok', proxy: currentRpcUrl(), backends: ZION_RPC_URLS });
 });
 
 app.listen(PORT, () => {
-  console.log(`zion-rpc-shim listening on 0.0.0.0:${PORT}, proxying to ${ZION_RPC_URL}`);
+  console.log(`zion-rpc-shim listening on 0.0.0.0:${PORT}, proxying to ${currentRpcUrl()}`);
 });

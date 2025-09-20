@@ -76,7 +76,7 @@ services:
     restart: unless-stopped
     environment:
       - SHIM_PORT=18089
-      - ZION_RPC_URL=http://seed1:18081/json_rpc
+      - ZION_RPC_URLS=http://seed1:18081/json_rpc,http://seed2:18081/json_rpc
     ports:
       - "18089:18089"  # Monero-like JSON-RPC endpoint for external pool software
     depends_on:

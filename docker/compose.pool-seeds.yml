@@ -21,6 +21,8 @@ services:
       - RPC_PORT=18081
     volumes:
       - seed1-data:/home/zion/.zion
+      # Persist official GENESIS wallet info inside the data dir
+      - ../config/OFFICIAL_GENESIS_WALLET.conf:/home/zion/.zion/OFFICIAL_GENESIS_WALLET.conf:ro
     networks:
       - zion-seeds
 
@@ -38,6 +40,8 @@ services:
       - RPC_PORT=18081
     volumes:
       - seed2-data:/home/zion/.zion
+      # Persist official GENESIS wallet info inside the data dir
+      - ../config/OFFICIAL_GENESIS_WALLET.conf:/home/zion/.zion/OFFICIAL_GENESIS_WALLET.conf:ro
     depends_on:
       - seed1
     networks:

@@ -27,6 +27,12 @@ echo "[remote] Pulling latest repo changes…"
 git fetch --all --prune
 git reset --hard origin/master
 
+echo "[remote] CLEAN mode: ${CLEAN:-0} (1 = remove volumes)"
+if [[ "${CLEAN:-0}" == "1" ]]; then
+  echo "[remote] Bringing stack down and removing volumes…"
+  $COMPOSE -f docker/compose.pool-seeds.yml down -v || true
+fi
+
 echo "[remote] Restarting services…"
 $COMPOSE -f docker/compose.pool-seeds.yml up -d --force-recreate seed1 seed2 redis rpc-shim uzi-pool
 

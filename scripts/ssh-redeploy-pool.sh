@@ -8,6 +8,7 @@ set -euo pipefail
 SERVER_IP="${1:-}"
 SERVER_USER="${2:-root}"
 PUSH_LOCAL="${PUSH_LOCAL:-1}" # set to 0 to skip copying local changes
+CLEAN_REDEPLOY="${CLEAN:-0}"   # set CLEAN=1 to nuke volumes and restart fresh
 
 if [[ -z "${SERVER_IP}" ]]; then
   echo "Usage: $0 <server-ip> [user]" >&2
@@ -48,6 +49,14 @@ else
 fi
 
 cd "$REMOTE_REPO_DIR"
+
+echo "[remote] CLEAN mode: ${CLEAN:-0} (1 = remove volumes)"
+if [[ "${CLEAN:-0}" == "1" ]]; then
+  echo "[remote] Stopping stack and removing volumes (seed1-data, seed2-data, pool-data)…"
+  docker compose -f docker/compose.pool-seeds.yml down -v || true
+  # Safety: also try volume names directly in case compose names differ
+  docker volume rm seed1-data seed2-data pool-data >/dev/null 2>&1 || true
+fi
 
 echo "[remote] Ensuring docker network 'zion-seeds' exists…"
 docker network create zion-seeds >/dev/null 2>&1 || true

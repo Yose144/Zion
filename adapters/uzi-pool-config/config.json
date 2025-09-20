@@ -14,7 +14,7 @@
   "blockRefreshInterval": 30000,
     "minerTimeout": 900,
     "ports": [
-      { "port": 3333, "difficulty": 1000, "desc": "ZION default" }
+  { "port": 3333, "difficulty": 100, "desc": "ZION default (test)" }
     ],
     "varDiff": { "minDiff": 2, "maxDiff": 100000, "targetTime": 100, "retargetTime": 30, "variancePercent": 30, "maxJump": 100 },
     "shareTrust": { "enabled": true, "min": 10, "stepDown": 3, "threshold": 10, "penalty": 30 },

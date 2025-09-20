@@ -1,6 +1,23 @@
-# ZION Cryptocurrency
+# ZION Cryptocurrency V2
 
-ZION je vlastní kryptoměna založená na Proof of Work algoritmu RandomX, optimaliz### Inspirace: Pi Network
+ZION je vlastní kryptoměna založená na Proof of Work algoritmu RandomX, optimalizovaná pro decentralizovanou těžbu s podporou pool mining.
+
+## 🎯 AKTUÁLNÍ STAV - ZION V2 s RandomX
+
+### ✅ Nedávno dokončeno (2025-09-20):
+- **Přechod na RandomX**: Migrace z CryptoNote na originální RandomX algoritmus
+- **Nový Genesis**: Genesis hash `7ec461cd0a810220ea94b191c10b384e8bda683a5b3c7bea5a1dd55893c01ac1`
+- **OFFICIAL GENESIS Wallet**: `Z1Genesis2025MainNet9999999999999999999999999999999999999999999999999999999999`
+- **Produkční server**: ZION V2 daemon běží na 91.98.122.165:18080
+
+### 🔑 Genesis Wallet Access:
+```
+Lokace: /Users/yose/Zion/config/OFFICIAL_GENESIS_WALLET.conf
+Network: zion-mainnet-v2
+Algorithm: RandomX (rx/0)
+```
+
+### Inspirace: Pi Network
 - **Web**: https://minepi.com/
 - **UX vzory**: Mobilní on‑boarding, "sociální těžba", denní check-in streaks
 - **Implementace v ZION**: Presence modul, komunitní validace, postupná KYC

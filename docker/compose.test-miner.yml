@@ -7,7 +7,10 @@ networks:
 
 services:
   xmrig-test:
-    image: xmrig/xmrig:6.21.3
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.xmrig
+    image: zion:xmrig
     container_name: zion-xmrig-test
     restart: unless-stopped
     command: ["-c","/config/xmrig.config.json"]

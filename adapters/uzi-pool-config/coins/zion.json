@@ -4,8 +4,8 @@
   "algorithm": "randomx",
   "rxVariant": "rx/0",
   "coinUnits": 1000000000000,
-  "addressPrefix": "Z",
-  "addressRegex": "^[Za][123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{94}$",
+  "addressPrefix": "a",
+  "addressRegex": ".*",
   "explorer": "",
   "daemon": {
     "host": "seed1",

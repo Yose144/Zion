@@ -102,8 +102,8 @@ async function withGbtMutex(fn) {
 // Robust getblocktemplate with retry/backoff on transient busy errors
 async function getBlockTemplateRobust(wal, reserve) {
   return withGbtMutex(async () => {
-    // Force small reserve size to reduce payload/pressure
-    reserve = 4;
+    // Respect requested reserve size (pool expects 8). Default sensibly if missing.
+    if (typeof reserve === 'undefined' || reserve === null) reserve = 8;
 
     // If we have a recent cached template for the same wallet, serve it immediately
     if (lastTpl && lastTpl.wal === wal) {
@@ -124,14 +124,23 @@ async function getBlockTemplateRobust(wal, reserve) {
     for (let attempt = 0; attempt < 10; attempt++) {
       try {
         const r = await tryVariants(variants);
+        // Debug: summarize daemon response
+        try {
+          const keys = Object.keys(r || {});
+          const tplLen = ((r && (r.blocktemplate_blob || r.block_template_blob || r.blob || r.blockblob || r.template || r.block)) || '').length;
+          const hashLen = ((r && (r.blockhashing_blob || r.hashing_blob)) || '').length;
+          console.log(`[shim] gbt raw keys=${JSON.stringify(keys)} height=${r && r.height} diff=${r && r.difficulty} tplLen=${tplLen} hashBlobLen=${hashLen} reserved_offset=${r && (r.reserved_offset || r.reservedOffset)}`);
+        } catch (e) {}
+
         // Map fields (template_blob, difficulty, height, seed_hash ... adjust as ziond provides)
+        const blockTpl = r.blocktemplate_blob || r.block_template_blob || r.blob || r.blockblob || r.template || r.block || '';
         const mapped = {
-          blocktemplate_blob: r.blocktemplate_blob || r.template || '',
+          blocktemplate_blob: blockTpl,
           difficulty: r.difficulty,
           height: r.height,
-          prev_hash: r.prev_hash || r.previous || '',
-          seed_hash: r.seed_hash || '',
-          reserved_offset: r.reserved_offset || 0
+          prev_hash: r.prev_hash || r.previous || r.prev || '',
+          seed_hash: r.seed_hash || r.seed || '',
+          reserved_offset: (typeof r.reserved_offset !== 'undefined' ? r.reserved_offset : (typeof r.reservedOffset !== 'undefined' ? r.reservedOffset : 0))
         };
         // Update cache
         lastTpl = { mapped, raw: r, height: r.height, when: Date.now(), wal };
@@ -204,7 +213,7 @@ async function handleSingle(id, method, params) {
           reserve = typeof reserve_size !== 'undefined' ? reserve_size : rs;
         }
         // Sensible defaults
-        if (typeof reserve === 'undefined' || reserve === null) reserve = 4;
+  if (typeof reserve === 'undefined' || reserve === null) reserve = 8;
         const result = await getBlockTemplateRobust(wal, reserve);
         return { jsonrpc: '2.0', id, result };
       }

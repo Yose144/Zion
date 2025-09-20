@@ -35,11 +35,19 @@ void print_banner() {
 }
 
 void print_info() {
+    auto format_amount = [](uint64_t micro) {
+        std::ostringstream oss;
+        uint64_t whole = micro / 1000000ULL;
+        uint64_t frac = micro % 1000000ULL;
+        oss << whole << "." << std::setw(6) << std::setfill('0') << frac << " ZION";
+        return oss.str();
+    };
+
     std::cout << "Network Parameters:" << std::endl;
-    std::cout << "  - Max Supply: 21,000,000 ZION" << std::endl;
-    std::cout << "  - Block Time: 2 minutes" << std::endl;
-    std::cout << "  - Initial Reward: 50 ZION" << std::endl;
-    std::cout << "  - Halvening: Every 210,000 blocks" << std::endl;
+    std::cout << "  - Max Supply: " << (ZION_MAX_SUPPLY / 1000000ULL) << " ZION" << std::endl;
+    std::cout << "  - Block Time: " << ZION_TARGET_BLOCK_TIME/60 << " minutes" << std::endl;
+    std::cout << "  - Initial Reward: " << format_amount(ZION_INITIAL_REWARD) << std::endl;
+    std::cout << "  - Halvening: Every " << ZION_HALVENING_INTERVAL << " blocks" << std::endl;
     std::cout << "  - P2P Port: " << ZION_P2P_DEFAULT_PORT << std::endl;
     std::cout << "  - RPC Port: " << ZION_RPC_DEFAULT_PORT << std::endl;
     std::cout << std::endl;

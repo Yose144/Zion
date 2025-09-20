@@ -299,8 +299,8 @@ seed3.zion.network:18080
 
 | Parameter | Value |
 |-----------|-------|
-| Max Supply | 21,000,000 ZION |
-| Initial Block Reward | 50 ZION |
+| Max Supply | 144,000,000,000 ZION |
+| Initial Block Reward | 5,000 ZION |
 | Block Time | 2 minutes |
 | Halving Interval | 210,000 blocks (~291 days) |
 | Difficulty Adjustment | Every 720 blocks (~24 hours) |

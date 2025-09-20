@@ -12,7 +12,7 @@
 
 ### Klíčové informace:
 ```
-Genesis Hash: 7ec461cd0a810220ea94b191c10b384e8bda683a5b3c7bea5a1dd55893c01ac1
+Genesis Hash: a731b62d8cb5e369f69761f1c6212295c1b25bd278d88a3ebc0bd61becd27e60
 Genesis Address: Z1Genesis2025MainNet9999999999999999999999999999999999999999999999999999999999
 Network ID: zion-mainnet-v2
 Timestamp: 1758364474

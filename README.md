@@ -6,7 +6,7 @@ ZION je vlastní kryptoměna založená na Proof of Work algoritmu RandomX, opti
 
 ### ✅ Nedávno dokončeno (2025-09-20):
 - **Přechod na RandomX**: Migrace z CryptoNote na originální RandomX algoritmus
-- **Nový Genesis**: Genesis hash `7ec461cd0a810220ea94b191c10b384e8bda683a5b3c7bea5a1dd55893c01ac1`
+- **Nový Genesis**: Genesis hash `a731b62d8cb5e369f69761f1c6212295c1b25bd278d88a3ebc0bd61becd27e60`
 - **OFFICIAL GENESIS Wallet**: `Z1Genesis2025MainNet9999999999999999999999999999999999999999999999999999999999`
 - **Produkční server**: ZION V2 daemon běží na 91.98.122.165:18080
 

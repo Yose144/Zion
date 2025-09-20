@@ -14,7 +14,7 @@ services:
     image: zion:production-fixed
     container_name: zion-seed1
     restart: unless-stopped
-    command: ["/usr/local/bin/ziond", "--data-dir", "/home/zion/.zion", "--p2p-bind-port", "18080", "--rpc-bind-port", "18081", "--rpc-bind-ip", "0.0.0.0", "--enable-cors", "*"]
+    command: ["/usr/local/bin/ziond", "--data-dir", "/home/zion/.zion", "--p2p-bind-port", "18080", "--rpc-bind-port", "18081", "--rpc-bind-ip", "0.0.0.0"]
     environment:
       - ZION_MODE=daemon
       - ZION_LOG_LEVEL=info
@@ -25,7 +25,9 @@ services:
       # Persist official GENESIS wallet info inside the data dir
       - ../config/OFFICIAL_GENESIS_WALLET.conf:/home/zion/.zion/OFFICIAL_GENESIS_WALLET.conf:ro
     networks:
-      - zion-seeds
+      zion-seeds:
+        aliases:
+          - seed1
 
   seed2:
     build:
@@ -34,7 +36,7 @@ services:
     image: zion:production-fixed
     container_name: zion-seed2
     restart: unless-stopped
-    command: ["/usr/local/bin/ziond", "--data-dir", "/home/zion/.zion", "--p2p-bind-port", "18080", "--rpc-bind-port", "18081", "--rpc-bind-ip", "0.0.0.0", "--enable-cors", "*"]
+    command: ["/usr/local/bin/ziond", "--data-dir", "/home/zion/.zion", "--p2p-bind-port", "18080", "--rpc-bind-port", "18081", "--rpc-bind-ip", "0.0.0.0"]
     environment:
       - ZION_MODE=daemon
       - ZION_LOG_LEVEL=info
@@ -47,7 +49,9 @@ services:
     depends_on:
       - seed1
     networks:
-      - zion-seeds
+      zion-seeds:
+        aliases:
+          - seed2
 
   pool:
     image: zion:production-fixed
@@ -88,7 +92,7 @@ services:
     restart: unless-stopped
     environment:
       - SHIM_PORT=18089
-      - ZION_RPC_URLS=http://seed1:18081/json_rpc,http://seed2:18081/json_rpc
+      - ZION_RPC_URLS=http://zion-seed1:18081/json_rpc,http://zion-seed2:18081/json_rpc
     ports:
       - "18089:18089"  # Monero-like JSON-RPC endpoint for external pool software
     depends_on:
@@ -118,7 +122,9 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "no"]
     networks:
-      - zion-seeds
+      zion-seeds:
+        aliases:
+          - redis
 
 volumes:
   seed1-data:

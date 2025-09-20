@@ -16,5 +16,5 @@ services:
     command: ["-c","/config/xmrig.config.json"]
     volumes:
       - ./xmrig.config.json:/config/xmrig.config.json:ro
-    # Run outside the zion-seeds network, connect directly to host IP.
-    # This avoids DNS/service discovery dependencies during testing.
+    networks:
+      - zion-seeds

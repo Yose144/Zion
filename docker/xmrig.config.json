@@ -7,10 +7,10 @@
   },
   "pools": [
     {
-      "algo": "rx/0",
+  "algo": "rx/0",
       "coin": null,
-      "url": "91.98.122.165:3333",
-      "user": "ajmqontZjiVUmtNjQu1RNUYq1RZgd5EDodX3qgjcaTMoMzG8EkG4bVPgLhEgudBoH82fQU1iZVw6XPfddKWAHDdA3x92ToH4uo",
+  "url": "zion-uzi-pool:3333",
+  "user": "ajmqw6uQCZ7SEUibSdVpETEuNby2iwzBg13pN6tuqwLgchqVgoNabByjeXTB9AQxaNazK2g3qCd7EXPZp7Ev3d5h91knKL8nnW",
       "pass": "x",
       "rig-id": "TEST",
       "keepalive": true,

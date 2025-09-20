@@ -1,3 +1,19 @@
+# ZION Pool – RandomX stav (2025-09-20)
+
+Algoritmus: RandomX (rx/0)
+Stav: Stratum pool online, RPC shim OK, seed nody běží (izolovaný režim)
+Pool adresy: `config/adapters/uzi-pool-config/config.json` – poolAddress nastaven na lokální peněženku
+XMRig test: přihlášení OK, přiděleny joby (rx/0, height 1), těžba běží (omezený dataset → slow mode v Dockeru)
+Známé poznámky: občasné reconnect po startu (EOF), stabilizuje se; doporučeno navýšit paměť / hugepages pro vyšší výkon
+
+Výřezy z logů:
+XMRig: "new job … diff 1000 algo rx/0 height 1"
+Pool: "Started server listening on port 3333" a "New block to mine at height 1"
+
+Další kroky:
+Vyladit výkon mineru (Huge Pages, více RAM)
+Ověřit share submission end-to-end a `submitblock` přes shim
+Přidat metriky (height, diff) do jednoduchého monitoringu
 # 2025-09-20 — Uzi-Pool (Stratum 3333) + RPC Shim + XMRig status
 
 Tento log shrnuje dnešní iterace nad Stratum poolem (uzi-pool), RPC shimem a testovacím minerem (XMRig) pro ZION V2 (RandomX, rx/0).

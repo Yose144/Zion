@@ -86,6 +86,16 @@ Cílem není nekonečná akumulace, ale dosažení dostatku pro všechny:
 ### Poznámka 2025-09-20
 - Složka `logs/` byla lokálně obnovena z HEAD (předtím omylem prázdná). Pro AI/sonnet přehled jsou čerstvé runtime logy uloženy v `logs/runtime/20250920T012139Z/` (pool/shim/seedy/redis). Stav poolu: opakované `Core is busy` na `getblocktemplate`.
 
+### Strategické rozšíření 2025-09-20
+- Vytvořena komprehensivní multi-chain dokumentace (3 nové docs):
+  - `STRATEGIC_VISION_EXPANSION.md` - Dharmic blockchain ecosystem
+  - `MULTI_CHAIN_TECHNICAL_ROADMAP.md` - Technická implementace s kódem
+  - `PORTUGAL_HUB_STRATEGY.md` - Fyzická manifestace & Venus Project
+  - `PRAGMATIC_MULTI_CHAIN_IMPLEMENTATION.md` - Praktický přístup bez spirituality
+- Roadmap pro 5 blockchainů (ZION, Solana, Stellar, Cardano, Tron)
+- Portugal hub strategie: €450k-700k budget, Q1-Q2 2026 timeline
+- Technologická udržitelnost založená na Resource-Based Economy principech
+
 Datum: 2025-09-19
 Autor: automatizovaný asistent
 

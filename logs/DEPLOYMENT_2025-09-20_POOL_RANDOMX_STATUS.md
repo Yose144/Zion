@@ -1,8 +1,26 @@
 \n## Update – RandomX share processing patched (ARM64) and connectivity check
-
 - Implementováno runtime patchování uzi‑poolu, které obchází CryptoNight/multi‑hashing na ARM64:
   - Zjednodušen `IsBannedIp` a vložena vlastní `processShare(...)`, která věří minerovu `result` hash a počítá obtížnost přes bignum.
   - Při překročení `blockTemplate.difficulty` se pokusí zavolat `submitblock` s blobem z `cryptonote-util.construct_block_blob`.
+## Update — End-to-end těžba OK: submitblock prochází, výška roste (2025-09-20)
+
+- Pool nyní úspěšně nachází a odesílá bloky, daemon je přijímá:
+  - uzi-pool log: `Block … found … submit result: {"status":"OK"}` (např. h=8, h=9 ~18:10:47/52)
+  - ihned následuje `New block to mine at height <n+1>`
+- RPC shim/daemon potvrzuje růst výšky: `getheight => { height: 12 }` (přes shim na 18089)
+- getblocktemplate mapování stabilní (reserved_offset ~462, tplLen ~940) — joby se regenerují po každém přijetí bloku.
+
+Poznámky:
+- „Core is busy (-9)“ na submitblock vyřešeno úpravou RPC serveru (povoleno submitblock i v busy režimu pro test síť) a dočasným uvolněním readiness v izolovaném prostředí.
+- Share path v uzi-poolu nyní konstruuje blob přes `cryptonote-util.construct_block_blob(headerBuffer, nonceBuffer)` a předává správné Buffery.
+
+Další kroky (priorita):
+1) Payout pipeline: napojit pool na zion_wallet(d) a otestovat maturitu coinbase → výplatní transakce.
+2) Zpřísnit readiness v daemonu (vrátit standardní isCoreReady), ponechat jen submitblock „allow while busy“.
+3) P2P peering seed1↔seed2 + perzistence dat volume; otevřít p2p porty ven, přidat seeds.
+4) Observabilita: lehký metrics/health endpoint v rpc-shim (height, diff, submit OK rate, orphan rate).
+
+
   - Odstraněna závislost na CryptoNight v share path (žádné pády workeru).
 - Image `zion:uzi-pool` znovu postaven a nasazen; při startu: `[patch-rx] Patched pool.js for RandomX/ARM64`.
 - Služby běží:

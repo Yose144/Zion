@@ -71,34 +71,51 @@ async function tryVariants(variants) {
 // Sleep helper
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+// Simple mutex to serialize getblocktemplate calls
+let gbtInFlight = false;
+async function withGbtMutex(fn) {
+  // Wait until not in flight
+  while (gbtInFlight) {
+    await sleep(50);
+  }
+  gbtInFlight = true;
+  try {
+    return await fn();
+  } finally {
+    gbtInFlight = false;
+  }
+}
+
 // Robust getblocktemplate with retry/backoff on transient busy errors
 async function getBlockTemplateRobust(wal, reserve) {
-  const variants = [
-    { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
-    { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
-    { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
-    { method: 'get_block_template', params: { address: wal, reserve_size: reserve } },
-    { method: 'getblocktemplate', params: [wal, reserve] },
-    { method: 'get_block_template', params: [wal, reserve] }
-  ];
-  let lastErr;
-  for (let attempt = 0; attempt < 6; attempt++) {
-    try {
-      return await tryVariants(variants);
-    } catch (e) {
-      lastErr = e;
-      if (typeof e.code !== 'undefined' && Number(e.code) === -9) {
-        // Core is busy: back off and retry
-        const delay = 200 + attempt * 200;
-        console.warn(`[shim] getblocktemplate busy (-9), retrying in ${delay}ms (attempt ${attempt+1}/6)`);
-        await sleep(delay);
-        continue;
+  return withGbtMutex(async () => {
+    const variants = [
+      { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
+      { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
+      { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
+      { method: 'get_block_template', params: { address: wal, reserve_size: reserve } },
+      { method: 'getblocktemplate', params: [wal, reserve] },
+      { method: 'get_block_template', params: [wal, reserve] }
+    ];
+    let lastErr;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try {
+        return await tryVariants(variants);
+      } catch (e) {
+        lastErr = e;
+        if (typeof e.code !== 'undefined' && Number(e.code) === -9) {
+          // Core is busy: back off and retry
+          const delay = 250 + attempt * 250;
+          console.warn(`[shim] getblocktemplate busy (-9), retrying in ${delay}ms (attempt ${attempt+1}/6)`);
+          await sleep(delay);
+          continue;
+        }
+        // Non-busy error: stop immediately
+        break;
       }
-      // Non-busy error: stop immediately
-      break;
     }
-  }
-  throw lastErr || new Error('getblocktemplate failed');
+    throw lastErr || new Error('getblocktemplate failed');
+  });
 }
 
 async function handleSingle(id, method, params) {

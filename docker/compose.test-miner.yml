@@ -10,14 +10,8 @@ services:
     image: xmrig/xmrig:latest
     container_name: zion-xmrig-test
     restart: unless-stopped
-    command:
-      ["--url","stratum+tcp://91.98.122.165:3333",
-       "--algo","rx/0",
-       "--user","Z7v1oJtV3pQAYt2oR9wA3sL5xTnQmBkR6yU8iN2mK4hP9eD3cF7aJ1kL2pQ9wE7rT6",
-       "--pass","x",
-       "--keepalive",
-       "--rig-id","TEST",
-       "--print-time","5",
-       "--donate-level","0"]
+    command: ["-c","/config/xmrig.config.json"]
+    volumes:
+      - ./xmrig.config.json:/config/xmrig.config.json:ro
     # Run outside the zion-seeds network, connect directly to host IP.
     # This avoids DNS/service discovery dependencies during testing.

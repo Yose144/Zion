@@ -83,6 +83,9 @@ Cílem není nekonečná akumulace, ale dosažení dostatku pro všechny:
 - Přidat docker build pro zion-cryptonote a docker-compose službu s healthchecky.
 - Monitoring (Prometheus endpoint nebo lehký exporter nad RPC).
 
+### Poznámka 2025-09-20
+- Složka `logs/` byla lokálně obnovena z HEAD (předtím omylem prázdná). Pro AI/sonnet přehled jsou čerstvé runtime logy uloženy v `logs/runtime/20250920T012139Z/` (pool/shim/seedy/redis). Stav poolu: opakované `Core is busy` na `getblocktemplate`.
+
 Datum: 2025-09-19
 Autor: automatizovaný asistent
 

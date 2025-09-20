@@ -31,3 +31,6 @@ Krátký souhrn kroků a změn zaměřených na rychlé spuštění minerů a sj
 ## Next
 - Nechat daemon pár minut ustálit; pokud `Core is busy` přetrvá, zvýšit intervaly a/nebo jednorázově restart seed1.
 - Jakmile pool začne vydávat joby, spustit miner (lokálně i vzdáleně) a ověřit accepted shares.
+
+## Runtime logy
+- 2025-09-20 01:21Z: Nasbírány runtime logy ze serveru do `logs/runtime/20250920T012139Z/` (docker-ps snapshot, tail logů pro pool, shim, seed1/2, redis). Pool stále hlásí `{ "code": -9, "message": "Core is busy" }` při `getblocktemplate`.

@@ -9,9 +9,9 @@
 
   "poolServer": {
     "enabled": true,
-    "clusterForks": "auto",
+  "clusterForks": 1,
     "poolAddress": "Z7v1oJtV3pQAYt2oR9wA3sL5xTnQmBkR6yU8iN2mK4hP9eD3cF7aJ1kL2pQ9wE7rT6yU8iN2mK4hP9eD3cF7aJ1kL2pQ9wE7rT6",
-  "blockRefreshInterval": 3000,
+  "blockRefreshInterval": 5000,
     "minerTimeout": 900,
     "ports": [
       { "port": 3333, "difficulty": 1000, "desc": "ZION default" }
@@ -26,7 +26,7 @@
   "blockUnlocker": { "enabled": false, "interval": 30, "depth": 60, "poolFee": 0, "devDonation": 0, "coreDevDonation": 0 },
   "api": { "enabled": false, "hashrateWindow": 600, "updateInterval": 5, "port": 8117, "blocks": 30, "payments": 30, "password": "disabled" },
 
-  "daemon": { "host": "zion-rpc-shim", "port": 18089 },
-  "wallet": { "host": "zion-rpc-shim", "port": 18089 },
+  "daemon": { "host": "seed1", "port": 18081 },
+  "wallet": { "host": "seed1", "port": 18081 },
   "redis": { "host": "redis", "port": 6379, "auth": null }
 }

@@ -121,6 +121,18 @@ xmrig \
   --threads 1
 ```
 
+## 🗄 Archiv původních logů (před migrací)
+
+Původní logy z 2025‑09‑19/20, které byly v předchozích commitech smazány, jsem obnovil do archivu:
+
+- Cesta: `logs/archive/20250920_original/`
+- Počet souborů: 34
+- Příklad:
+  - `DEPLOYMENT_GUIDE.md`
+  - `DEPLOYMENT_LOG_20250919.md`
+  - `GENESIS_BLOCK_INFO.md`
+  - `SUMMARY_2025-09-20.md`
+
 ## 📊 Výsledek
 
 ### ✅ Splněno ze zadání:

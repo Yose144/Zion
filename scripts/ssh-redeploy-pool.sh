@@ -28,7 +28,7 @@ if ! ssh -o BatchMode=yes -o ConnectTimeout=5 "${SERVER_USER}@${SERVER_IP}" 'ech
 fi
 
 echo "[ssh] Preparing remote workspace at ${REMOTE_REPO_DIR}..."
-ssh "${SERVER_USER}@${SERVER_IP}" bash -s << 'REMOTE_CMDS'
+ssh "${SERVER_USER}@${SERVER_IP}" "CLEAN=${CLEAN_REDEPLOY}" bash -s << 'REMOTE_CMDS'
 set -euo pipefail
 REMOTE_BASE="/opt/zion"
 REMOTE_REPO_DIR="$REMOTE_BASE/Zion"
@@ -56,6 +56,12 @@ if [[ "${CLEAN:-0}" == "1" ]]; then
   docker compose -f docker/compose.pool-seeds.yml down -v || true
   # Safety: also try volume names directly in case compose names differ
   docker volume rm seed1-data seed2-data pool-data >/dev/null 2>&1 || true
+  # Remove potentially conflicting containers
+  for c in zion-uzi-pool zion-rpc-shim zion-seed1 zion-seed2 zion-redis; do
+    if docker ps -a --format '{{.Names}}' | grep -qx "$c"; then
+      echo "[remote] Removing leftover container $c"; docker rm -f "$c" || true;
+    fi
+  done
 fi
 
 echo "[remote] Ensuring docker network 'zion-seeds' exists…"
@@ -81,6 +87,9 @@ echo "[remote] Starting core services (seed1, seed2, redis)…"
 docker compose -f docker/compose.pool-seeds.yml up -d seed1 seed2 redis
 
 echo "[remote] Restarting rpc-shim & uzi-pool…"
+# Ensure no name conflicts block recreation
+if docker ps -a --format '{{.Names}}' | grep -qx 'zion-uzi-pool'; then docker rm -f zion-uzi-pool || true; fi
+if docker ps -a --format '{{.Names}}' | grep -qx 'zion-rpc-shim'; then docker rm -f zion-rpc-shim || true; fi
 docker compose -f docker/compose.pool-seeds.yml up -d --force-recreate rpc-shim uzi-pool
 
 echo "[remote] Current service states:"

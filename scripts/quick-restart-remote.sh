@@ -13,7 +13,7 @@ if [[ -z "${SERVER_IP}" ]]; then
 fi
 
 echo "[local] Performing quick restart on ${SERVER_USER}@${SERVER_IP}…"
-ssh "${SERVER_USER}@${SERVER_IP}" bash -s << 'REMOTE'
+ssh "${SERVER_USER}@${SERVER_IP}" "CLEAN=${CLEAN:-0}" bash -s << 'REMOTE'
 set -euo pipefail
 REPO_DIR="/opt/zion/Zion"
 cd "$REPO_DIR" || { echo "[remote] Repo not found at $REPO_DIR" >&2; exit 2; }

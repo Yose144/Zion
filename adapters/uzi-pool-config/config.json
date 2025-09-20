@@ -22,8 +22,8 @@
     "slushMining": { "enabled": false, "weight": 300, "blockTime": 60, "lastBlockCheckRate": 1 }
   },
 
-  "payments": { "enabled": true, "interval": 120, "maxAddresses": 50, "mixin": 3, "transferFee": 5000000000, "minPayment": 100000000000, "denomination": 100000000000 },
-  "blockUnlocker": { "enabled": true, "interval": 30, "depth": 10, "poolFee": 0, "devDonation": 0, "coreDevDonation": 0 },
+  "payments": { "enabled": true, "interval": 30, "maxAddresses": 50, "mixin": 3, "transferFee": 5000000000, "minPayment": 1000000, "denomination": 100000000000 },
+  "blockUnlocker": { "enabled": true, "interval": 15, "depth": 3, "poolFee": 0, "devDonation": 0, "coreDevDonation": 0 },
   "api": { "enabled": false, "hashrateWindow": 600, "updateInterval": 5, "port": 8117, "blocks": 30, "payments": 30, "password": "disabled" },
 
   "daemon": { "host": "rpc-shim", "port": 18089 },

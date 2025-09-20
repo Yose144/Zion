@@ -69,6 +69,17 @@ Poznámky:
 - Pool je připojen na rpc‑shim:18089, který tlumí špičky a sjednocuje RPC metody.
 - Pool při startu čeká na zdraví shim, aby se daemon nezahltil GBT dotazy.
 
+## GENESIS peněženka
+
+- Oficiální GENESIS wallet je uložena v repozitáři v `config/OFFICIAL_GENESIS_WALLET.conf`.
+- Při nasazení seed uzlů se tento soubor mountuje read‑only do kontejnerů na cestu:
+	- `/home/zion/.zion/OFFICIAL_GENESIS_WALLET.conf`
+
+## Handover a denní logy
+
+- Handover pro Sonnet: `logs/HANDOVER_SONNET_2025-09-20.md`
+- Dnešní status RandomX poolu: `logs/DEPLOYMENT_2025-09-20_POOL_RANDOMX_STATUS.md`
+
 ## Připojení mineru (XMRig)
 
 - URL: stratum+tcp://<server>:3333

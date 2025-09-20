@@ -1,5 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+echo "[cleanup] Docker: zastavuji uzi-pool test miner orphans (pokud existují)…"
+docker ps -aq --filter name=zion-xmrig-test | xargs -r docker rm -f || true
+
+echo "[cleanup] Docker: smazání dangling image a cache (volitelné)…"
+docker image prune -f || true
+docker builder prune -f || true
+
+echo "[cleanup] Git: přidání a commit pracovních změn…"
+git add -A
+git status --short
+
+echo "[cleanup] Hotovo. Pro push použij: scripts/push_logs.sh"
+#!/usr/bin/env bash
+set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Remove local build artifacts and caches

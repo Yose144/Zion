@@ -28,6 +28,8 @@ RUN npm config set python /usr/bin/python && \
 	npm config set jobs 2 && \
 	npm install --production || npm install --production
 
+## Removed build-time Node patch (caused quoting issues). We'll patch at runtime in entrypoint instead.
+
 # Configs budou přimountované jako volume na /config (viz compose)
 ENV POOL_CONFIG=/config/config.json
 ENV COINS_DIR=/config/coins
@@ -35,6 +37,6 @@ ENV COINS_DIR=/config/coins
 EXPOSE 3333
 
 # Entrypoint: při startu propojí konfigy z /config do /app a spustí pool
-RUN printf '#!/bin/sh\nset -e\n\nif [ -f "$POOL_CONFIG" ]; then\n  ln -sf "$POOL_CONFIG" /app/config.json;\nfi\nif [ -d "$COINS_DIR" ]; then\n  ln -sfn "$COINS_DIR" /app/coins;\nfi\n# Wait for rpc-shim health (if reachable) to prevent early hammering\nif command -v curl >/dev/null 2>&1; then\n  i=0; until [ $i -ge 30 ]; do\n    if curl -s --max-time 2 http://rpc-shim:18089/ | grep -q 'status'; then\n      echo "[entrypoint] rpc-shim is up"; break; fi; i=$((i+1)); echo "[entrypoint] waiting rpc-shim ($i/30)"; sleep 2;\n  done;\nfi\nexec node init.js\n' > /entrypoint.sh && chmod +x /entrypoint.sh
+RUN printf '#!/bin/sh\nset -e\n\nif [ -f "$POOL_CONFIG" ]; then\n  ln -sf "$POOL_CONFIG" /app/config.json;\nfi\nif [ -d "$COINS_DIR" ]; then\n  ln -sfn "$COINS_DIR" /app/coins;\nfi\n# Runtime hotfix: patch /app/lib/pool.js for Buffer JSON and deprecated constructors\nif [ -f "/app/lib/pool.js" ]; then\n  cat > /tmp/pool_patch.js <<\'EOF\'\nconst fs = require('fs');\nconst p = '/app/lib/pool.js';\ntry {\n  let s = fs.readFileSync(p, 'utf8');\n  const orig = s;\n  s = s.replace(/var buffArray = buff\\.toJSON\\(\\);/g, 'var buffArray = buff.toJSON();\\n        if (buffArray && buffArray.data) buffArray = buffArray.data;');\n  s = s.replace(/var buffReversed = new Buffer\\(buffArray\\);/g, 'var buffReversed = Buffer.from(buffArray);');\n  s = s.replace(/var padded = new Buffer\\(32\\);/g, 'var padded = Buffer.alloc(32);');\n  if (s !== orig) { fs.writeFileSync(p, s); console.log('[entrypoint] patched /app/lib/pool.js'); }\n  else { console.log('[entrypoint] pool.js patch not needed'); }\n} catch (e) { console.error('[entrypoint] pool.js patch failed:', e.message); }\nEOF\n  node /tmp/pool_patch.js || true;\nfi\n# Wait for rpc-shim health (if reachable) to prevent early hammering\nif command -v curl >/dev/null 2>&1; then\n  i=0; until [ $i -ge 30 ]; do\n    if curl -s --max-time 2 http://rpc-shim:18089/ | grep -q 'status'; then\n      echo "[entrypoint] rpc-shim is up"; break; fi; i=$((i+1)); echo "[entrypoint] waiting rpc-shim ($i/30)"; sleep 2;\n  done;\nfi\nexec node init.js\n' > /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

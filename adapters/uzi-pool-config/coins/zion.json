@@ -8,11 +8,11 @@
   "addressRegex": ".*",
   "explorer": "",
   "daemon": {
-    "host": "seed1",
-    "port": 18081,
+    "host": "rpc-shim",
+    "port": 18089,
     "ssl": false,
     "timeout": 5000,
-    "rpcPath": "/json_rpc"
+    "rpcPath": "/"
   },
   "blockTime": 120,
   "difficultyTarget": 120,

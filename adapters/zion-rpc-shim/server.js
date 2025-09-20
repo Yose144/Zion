@@ -30,6 +30,15 @@ const PORT = parseInt(process.env.SHIM_PORT || '18089', 10);
 const GBT_CACHE_MS = parseInt(process.env.GBT_CACHE_MS || '12000', 10); // serve cached template up to 12s by default
 const MAX_BACKOFF_MS = parseInt(process.env.MAX_BACKOFF_MS || '8000', 10);
 
+// Basic in-memory metrics
+const metrics = {
+  startedAt: Date.now(),
+  gbt: { requests: 0, cacheHits: 0, busyRetries: 0, errors: 0 },
+  submit: { requests: 0, ok: 0, error: 0 },
+  lastHeight: null,
+  lastSubmit: { when: null, ok: null }
+};
+
 // Cache of last successful block template (per wallet)
 let lastTpl = null; // { mapped, raw, height, when, wal }
 let lastErr = null; // { code, message, when }
@@ -140,6 +149,7 @@ async function withGbtMutex(fn) {
 // Robust getblocktemplate with retry/backoff on transient busy errors
 async function getBlockTemplateRobust(wal, reserve) {
   return withGbtMutex(async () => {
+    metrics.gbt.requests++;
     // Respect requested reserve size (pool expects 8). Default sensibly if missing.
     if (typeof reserve === 'undefined' || reserve === null) reserve = 8;
 
@@ -148,6 +158,7 @@ async function getBlockTemplateRobust(wal, reserve) {
       const age = Date.now() - lastTpl.when;
       if (age <= GBT_CACHE_MS) {
         console.log(`[shim] serving cached blocktemplate age=${age}ms height=${lastTpl.height}`);
+        metrics.gbt.cacheHits++;
         return lastTpl.mapped; // already mapped to Monero-like shape
       }
     }
@@ -186,6 +197,7 @@ async function getBlockTemplateRobust(wal, reserve) {
         };
         // Update cache
         lastTpl = { mapped, raw: r, height: r.height, when: Date.now(), wal };
+        metrics.lastHeight = r.height;
         lastErr = null;
         return mapped;
       } catch (e) {
@@ -195,6 +207,7 @@ async function getBlockTemplateRobust(wal, reserve) {
           // Core is busy: back off and retry
           const delay = Math.min(MAX_BACKOFF_MS, 250 + attempt * 500);
           console.warn(`[shim] getblocktemplate busy (-9), retrying in ${delay}ms (attempt ${attempt+1}/10)`);
+          metrics.gbt.busyRetries++;
           // rotate backend to spread load if multiple URLs configured
           if (ZION_RPC_URLS.length > 1) {
             CUR_URL_IDX = (CUR_URL_IDX + 1) % ZION_RPC_URLS.length;
@@ -212,6 +225,7 @@ async function getBlockTemplateRobust(wal, reserve) {
           continue;
         }
         // Non-busy error: stop immediately
+        metrics.gbt.errors++;
         break;
       }
     }
@@ -262,13 +276,22 @@ async function handleSingle(id, method, params) {
       // Submit block aliases
   case 'submitblock': {
         const blob = Array.isArray(params) ? params[0] : (params && (params.blob || params.block)) || undefined;
-        const r = await tryVariants([
-          { method: 'submitblock', params: [blob] },
-          { method: 'submit_block', params: [blob] },
-          { method: 'submitblock', params: { block: blob } },
-          { method: 'submit_block', params: { block: blob } }
-        ]);
-        return { jsonrpc: '2.0', id, result: r || true };
+        metrics.submit.requests++;
+        try {
+          const r = await tryVariants([
+            { method: 'submitblock', params: [blob] },
+            { method: 'submit_block', params: [blob] },
+            { method: 'submitblock', params: { block: blob } },
+            { method: 'submit_block', params: { block: blob } }
+          ]);
+          metrics.submit.ok++;
+          metrics.lastSubmit = { when: Date.now(), ok: true };
+          return { jsonrpc: '2.0', id, result: r || true };
+        } catch (e) {
+          metrics.submit.error++;
+          metrics.lastSubmit = { when: Date.now(), ok: false };
+          throw e;
+        }
       }
       // Optional helpers used by some pools
   case 'getblockcount': {
@@ -336,6 +359,61 @@ app.get('/', (_req, res) => {
     gbtMutexHeld: gbtInFlight,
     cacheMs: GBT_CACHE_MS
   });
+});
+
+// JSON metrics endpoint
+app.get('/metrics.json', (_req, res) => {
+  const age = lastTpl ? (Date.now() - lastTpl.when) : null;
+  res.json({
+    status: 'ok',
+    metrics: {
+      uptimeSec: Math.floor((Date.now() - metrics.startedAt) / 1000),
+      gbt: metrics.gbt,
+      submit: metrics.submit,
+      lastHeight: metrics.lastHeight,
+      lastGbtAgeMs: age
+    },
+    lastError: lastErr || null
+  });
+});
+
+// Prometheus-style plaintext metrics
+app.get('/metrics', (_req, res) => {
+  const lines = [];
+  const uptimeSec = Math.floor((Date.now() - metrics.startedAt) / 1000);
+  const lastGbtAge = lastTpl ? (Date.now() - lastTpl.when) : -1;
+  lines.push(`# HELP zion_shim_uptime_seconds Shim process uptime in seconds`);
+  lines.push(`# TYPE zion_shim_uptime_seconds gauge`);
+  lines.push(`zion_shim_uptime_seconds ${uptimeSec}`);
+  lines.push(`# HELP zion_shim_gbt_requests_total Number of getblocktemplate requests`);
+  lines.push(`# TYPE zion_shim_gbt_requests_total counter`);
+  lines.push(`zion_shim_gbt_requests_total ${metrics.gbt.requests}`);
+  lines.push(`# HELP zion_shim_gbt_cache_hits_total Number of cache hits for getblocktemplate`);
+  lines.push(`# TYPE zion_shim_gbt_cache_hits_total counter`);
+  lines.push(`zion_shim_gbt_cache_hits_total ${metrics.gbt.cacheHits}`);
+  lines.push(`# HELP zion_shim_gbt_busy_retries_total Number of busy (-9) retries for getblocktemplate`);
+  lines.push(`# TYPE zion_shim_gbt_busy_retries_total counter`);
+  lines.push(`zion_shim_gbt_busy_retries_total ${metrics.gbt.busyRetries}`);
+  lines.push(`# HELP zion_shim_gbt_errors_total Number of getblocktemplate errors`);
+  lines.push(`# TYPE zion_shim_gbt_errors_total counter`);
+  lines.push(`zion_shim_gbt_errors_total ${metrics.gbt.errors}`);
+  lines.push(`# HELP zion_shim_submit_requests_total Number of submitblock requests`);
+  lines.push(`# TYPE zion_shim_submit_requests_total counter`);
+  lines.push(`zion_shim_submit_requests_total ${metrics.submit.requests}`);
+  lines.push(`# HELP zion_shim_submit_ok_total Number of successful submitblock calls`);
+  lines.push(`# TYPE zion_shim_submit_ok_total counter`);
+  lines.push(`zion_shim_submit_ok_total ${metrics.submit.ok}`);
+  lines.push(`# HELP zion_shim_submit_error_total Number of failed submitblock calls`);
+  lines.push(`# TYPE zion_shim_submit_error_total counter`);
+  lines.push(`zion_shim_submit_error_total ${metrics.submit.error}`);
+  lines.push(`# HELP zion_shim_last_height Last known height from daemon`);
+  lines.push(`# TYPE zion_shim_last_height gauge`);
+  lines.push(`zion_shim_last_height ${metrics.lastHeight === null ? -1 : metrics.lastHeight}`);
+  lines.push(`# HELP zion_shim_last_gbt_age_milliseconds Age of last block template in milliseconds`);
+  lines.push(`# TYPE zion_shim_last_gbt_age_milliseconds gauge`);
+  lines.push(`zion_shim_last_gbt_age_milliseconds ${lastGbtAge}`);
+  res.set('Content-Type', 'text/plain; version=0.0.4');
+  res.send(lines.join('\n'));
 });
 
 app.listen(PORT, () => {

@@ -68,3 +68,19 @@ Rig-ID: windows-ryzen-1
 	- Start miner (direct):
 		- `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'd:\Zion\mining\platforms\windows\xmrig-6.21.3\xmrig.exe' -ArgumentList '--config=\"d:\Zion\mining\platforms\windows\xmrig-6.21.3\config-zion.json\"' -WorkingDirectory 'd:\Zion\mining\platforms\windows\xmrig-6.21.3' -WindowStyle Normal"`
 - Results: stratum reachable via tunnel; mining running locally; shares reported as accepted in miner output.
+
+---
+
+## 2025-09-20T Public Endpoint 443 → 3333 (bez tunelu)
+
+- Na serveru povolen port 443 a spuštěn TCP forwarder (Docker alpine/socat):
+	- `ufw allow 443/tcp`
+	- `docker run -d --name zion-stratum-443 --restart unless-stopped --network host alpine/socat tcp-l:443,reuseaddr,fork tcp:127.0.0.1:3333`
+	- Ověření: `ss -lntp | grep :443` → naslouchá `socat` na 0.0.0.0:443
+- Z klienta ověřeno:
+	- `Test-NetConnection 91.98.122.165 -Port 443` → True
+- Nový endpoint pro miner bez tunelu:
+	- Bez TLS: `stratum+tcp://91.98.122.165:443`
+	- Doporučené (příště): TLS přes nginx stream `stratum+ssl://91.98.122.165:443` (self-signed)
+- XMRig příklad (bez TLS):
+	- `xmrig --url stratum+tcp://91.98.122.165:443 --algo rx/0 --user <ZION_WALLET> --pass MAITREYA-Ryzen-1 --rig-id MAITREYA-Ryzen-1 --keepalive --donate-level 0`

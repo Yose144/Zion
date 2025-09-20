@@ -91,16 +91,29 @@ async function handleSingle(id, method, params) {
       }
       // Block template aliases
   case 'getblocktemplate': {
-        // Pool typically sends { wallet_address, reserve_size }
-        const { wallet_address, reserve_size, address, reserve_size: rs } = params || {};
-        const wal = address || wallet_address;
-        const reserve = typeof reserve_size !== 'undefined' ? reserve_size : rs;
+        // Pool may send object or array params. Accept both:
+        // - Object: { wallet_address, reserve_size } or { address, reserve_size }
+        // - Array: [wallet_address, reserve_size]
+        let wal, reserve;
+        if (Array.isArray(params)) {
+          wal = params[0];
+          reserve = params[1];
+        } else {
+          const { wallet_address, reserve_size, address, reserve_size: rs } = params || {};
+          wal = address || wallet_address;
+          reserve = typeof reserve_size !== 'undefined' ? reserve_size : rs;
+        }
+        // Sensible defaults
+        if (typeof reserve === 'undefined' || reserve === null) reserve = 4;
         const r = await tryVariants([
           { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
           { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
           // Some daemons accept 'address' instead of 'wallet_address'
           { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
-          { method: 'get_block_template', params: { address: wal, reserve_size: reserve } }
+          { method: 'get_block_template', params: { address: wal, reserve_size: reserve } },
+          // Older array form
+          { method: 'getblocktemplate', params: [wal, reserve] },
+          { method: 'get_block_template', params: [wal, reserve] }
         ]);
         // Map fields (template_blob, difficulty, height, seed_hash ... adjust as ziond provides)
         const result = {

@@ -1,3 +1,24 @@
+\n## Update – RandomX share processing patched (ARM64) and connectivity check
+
+- Implementováno runtime patchování uzi‑poolu, které obchází CryptoNight/multi‑hashing na ARM64:
+  - Zjednodušen `IsBannedIp` a vložena vlastní `processShare(...)`, která věří minerovu `result` hash a počítá obtížnost přes bignum.
+  - Při překročení `blockTemplate.difficulty` se pokusí zavolat `submitblock` s blobem z `cryptonote-util.construct_block_blob`.
+  - Odstraněna závislost na CryptoNight v share path (žádné pády workeru).
+- Image `zion:uzi-pool` znovu postaven a nasazen; při startu: `[patch-rx] Patched pool.js for RandomX/ARM64`.
+- Služby běží:
+  - Stratum: 0.0.0.0:3333 (zion-uzi-pool) – port je publikován z kontejneru na hosta.
+  - RPC shim: 0.0.0.0:18089 (zion-rpc-shim).
+- Log uzi‑pool po nasazení: žádná výjimka „Multi‑hashing disabled for ARM64“, opakovaná připojení mineru, probíhá retarget.
+
+Externí miner (Ryzen) – pokud hlásí „Connection refused“:
+- Zkontrolujte, že se připojujete na veřejnou nebo LAN IP tohoto hosta a port 3333 (např. `stratum+tcp://<IP_MAC>:3333`).
+- Na hostu je port namapovaný (docker ps: `0.0.0.0:3333->3333/tcp`). Pokud jste mimo LAN, zajistěte NAT/port‑forward 3333 a povolení ve firewallu.
+- Rychlé testy:
+  - Z Ryzen: `nc -vz <IP_MAC> 3333` (ověření, že port poslouchá a není blokován cestou).
+  - Na hostu: `lsof -iTCP -sTCP:LISTEN | grep 3333` – stratum je otevřeno.
+
+Pozn.: Pokud by XMRig vyžadoval v login reply explicitní `algo: 'rx/0'`, lze injekci znovu zapnout (aktuálně spoléháme na konfig mineru s `rx/0`).
+
 # ZION Pool – RandomX stav (2025-09-20)
 
 Algoritmus: RandomX (rx/0)

@@ -36,13 +36,15 @@ RUN npm config set python /usr/bin/python && \
 RUN mkdir -p node_modules/multi-hashing && \
 	echo "module.exports = { cryptonight: function() { throw new Error('Multi-hashing disabled for ARM64'); } };" > node_modules/multi-hashing/index.js
 
+# Add runtime patcher and entrypoint
+COPY docker/uzi-pool/patch-rx.js /patch-rx.js
+COPY docker/uzi-pool/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Configs budou přimountované jako volume na /config (viz compose)
 ENV POOL_CONFIG=/config/config.json
 ENV COINS_DIR=/config/coins
 
 EXPOSE 3333
-
-# Entrypoint: při startu propojí konfigy z /config do /app a spustí pool
-RUN printf '#!/bin/sh\nset -e\n\nif [ -f "$POOL_CONFIG" ]; then\n  ln -sf "$POOL_CONFIG" /app/config.json;\nfi\nif [ -d "$COINS_DIR" ]; then\n  ln -sfn "$COINS_DIR" /app/coins;\nfi\n# Runtime hotfix: patch /app/lib/pool.js for Buffer JSON\nif [ -f "/app/lib/pool.js" ]; then\n  sed -i "s/var buffArray = buff.toJSON();/var buffArray = buff.toJSON();\\n        if (buffArray \\&\\& buffArray.data) buffArray = buffArray.data;/" /app/lib/pool.js;\n  echo "[entrypoint] applied Buffer.toJSON() fix";\n  # Runtime hotfix: advertise RandomX algo to miners (Stratum extensions)\n  # Insert algo and extensions in login reply\n  sed -i "/sendReply(null, {/!b; :a; n; s/^\([[:space:]]*\)id: minerId,/\1algo: 'rx\/0',\\n\1extensions: ['algo'],\\n\1id: minerId,/; t; ba" /app/lib/pool.js || true;\n  # Add height and seed_hash to job response\n  sed -i "/return {/{:a; n; /id: this.id/ { n; s/^\([[:space:]]*\)}/\1height: this.lastBlockHeight,\\n\1seed_hash: '0000000000000000000000000000000000000000000000000000000000000000'\\n        }/; b}; ba}" /app/lib/pool.js || true;\n  echo "[entrypoint] applied RandomX stratum fields";\nfi\n# Wait for rpc-shim health\nif command -v curl >/dev/null 2>&1; then\n  i=0; until [ $i -ge 30 ]; do\n    if curl -s --max-time 2 http://rpc-shim:18089/ | grep -q "status"; then\n      echo "[entrypoint] rpc-shim is up"; break; fi; i=$((i+1)); echo "[entrypoint] waiting rpc-shim ($i/30)"; sleep 2;\n  done;\nfi\nexec node init.js\n' > /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

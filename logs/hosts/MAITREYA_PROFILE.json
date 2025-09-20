@@ -1,0 +1,25 @@
+{
+  "host": "MAITREYA",
+  "os": "Windows 11",
+  "user": "anaha",
+  "cpu": "AMD Ryzen 5 3600",
+  "wallet": "ajmrDtnSJCqchjF3wuiceJRCpAumA3wGLhQjtzf7B9uELFYrbtURHTFabiC8RmVbSkPGznaPhsehxYJvwcSGcwXV495Ytpr7wf",
+  "rigId": "windows-ryzen-1",
+  "pool": {
+    "serverIp": "91.98.122.165",
+    "stratumPort": 3333,
+    "shimPort": 18089,
+    "tunneled": true,
+    "localForward": {
+      "stratum": "127.0.0.1:3333",
+      "shim": "127.0.0.1:18089"
+    }
+  },
+  "xmrigConfig": "D:/Zion/test-xmrig.json",
+  "scripts": {
+    "sshKeySetup": "D:/Zion/scripts/ssh-key-setup.ps1",
+    "redeploy": "D:/Zion/scripts/ssh-redeploy-pool.ps1",
+    "tunnel": "D:/Zion/scripts/ssh-tunnel-maitreya.ps1"
+  },
+  "notes": "Provider firewall blocks 3333/18089; using SSH tunnel for now."
+}

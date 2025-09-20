@@ -68,6 +68,39 @@ async function tryVariants(variants) {
   throw lastErr || new Error('all variants failed');
 }
 
+// Sleep helper
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// Robust getblocktemplate with retry/backoff on transient busy errors
+async function getBlockTemplateRobust(wal, reserve) {
+  const variants = [
+    { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
+    { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
+    { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
+    { method: 'get_block_template', params: { address: wal, reserve_size: reserve } },
+    { method: 'getblocktemplate', params: [wal, reserve] },
+    { method: 'get_block_template', params: [wal, reserve] }
+  ];
+  let lastErr;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      return await tryVariants(variants);
+    } catch (e) {
+      lastErr = e;
+      if (typeof e.code !== 'undefined' && Number(e.code) === -9) {
+        // Core is busy: back off and retry
+        const delay = 200 + attempt * 200;
+        console.warn(`[shim] getblocktemplate busy (-9), retrying in ${delay}ms (attempt ${attempt+1}/6)`);
+        await sleep(delay);
+        continue;
+      }
+      // Non-busy error: stop immediately
+      break;
+    }
+  }
+  throw lastErr || new Error('getblocktemplate failed');
+}
+
 async function handleSingle(id, method, params) {
   const m = (method || '').toString().toLowerCase();
   const mu = m.replace(/_/g, '');
@@ -105,16 +138,7 @@ async function handleSingle(id, method, params) {
         }
         // Sensible defaults
         if (typeof reserve === 'undefined' || reserve === null) reserve = 4;
-        const r = await tryVariants([
-          { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
-          { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
-          // Some daemons accept 'address' instead of 'wallet_address'
-          { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
-          { method: 'get_block_template', params: { address: wal, reserve_size: reserve } },
-          // Older array form
-          { method: 'getblocktemplate', params: [wal, reserve] },
-          { method: 'get_block_template', params: [wal, reserve] }
-        ]);
+        const r = await getBlockTemplateRobust(wal, reserve);
         // Map fields (template_blob, difficulty, height, seed_hash ... adjust as ziond provides)
         const result = {
           blocktemplate_blob: r.blocktemplate_blob || r.template || '',

@@ -10,7 +10,7 @@ namespace zion {
 
 // ZION network constants
 constexpr uint64_t ZION_MAX_SUPPLY = 144000000000ULL * 1000000ULL; // 144,000,000,000 ZION with 6 decimals
-constexpr uint64_t ZION_INITIAL_REWARD = 5000ULL * 1000000ULL;     // 5000 ZION
+constexpr uint64_t ZION_INITIAL_REWARD = 333ULL * 1000000ULL;      // 333 ZION
 constexpr uint32_t ZION_TARGET_BLOCK_TIME = 120;               // 2 minutes in seconds
 constexpr uint32_t ZION_DIFFICULTY_WINDOW = 720;               // 720 blocks = ~24 hours
 constexpr uint32_t ZION_HALVENING_INTERVAL = 210000;           // Halvening every 210k blocks

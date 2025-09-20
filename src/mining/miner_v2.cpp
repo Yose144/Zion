@@ -377,8 +377,8 @@ private:
     }
     
     uint64_t calculate_block_reward() {
-        // Základní odměna s halvingem každých 210000 bloků
-        uint64_t halvings = blocks_mined_ / 210000;
+        // Základní odměna s halvingem dle konsenzuální konstanty
+        uint64_t halvings = blocks_mined_ / ZION_HALVENING_INTERVAL;
         uint64_t reward = ZION_INITIAL_REWARD;
         
         for (uint64_t i = 0; i < halvings && reward > 0; ++i) {

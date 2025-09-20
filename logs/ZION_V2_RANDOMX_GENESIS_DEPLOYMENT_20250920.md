@@ -12,7 +12,7 @@
 
 ### Klíčové informace:
 ```
-Genesis Hash: a731b62d8cb5e369f69761f1c6212295c1b25bd278d88a3ebc0bd61becd27e60
+Genesis Hash: 63c7c425546c897cca025b585d40fe5d76f5c0e98fe8c5d2c4c45594424ea2db
 Genesis Address: Z1Genesis2025MainNet9999999999999999999999999999999999999999999999999999999999
 Network ID: zion-mainnet-v2
 Timestamp: 1758364474
@@ -49,10 +49,12 @@ make -j$(nproc)
 ```
 Max Supply: 144,000,000,000 ZION
 Block Time: 120 seconds
-Initial Reward: 5000 ZION
+Initial Reward: 333 ZION
 P2P Port: 18080
 RPC Port: 18081
 Stratum Port: 3333
+
+Poznámka: AGAPE / SATORI — „zlatá střední cesta“: počáteční bloková odměna nastavena na 333 ZION.
 ```
 
 ## 🌐 Server Status (91.98.122.165)

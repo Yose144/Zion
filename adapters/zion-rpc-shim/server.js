@@ -52,20 +52,24 @@ async function zionRpc(method, params = {}) {
 
 // Helper: try multiple method/param variants, return first success; else throw last error
 async function tryVariants(variants) {
-  let lastErr;
+  const errors = [];
   for (const v of variants) {
     try {
       console.log('[shim->ziond]', v.method, JSON.stringify(v.params));
       const r = await zionRpc(v.method, v.params);
       return r;
     } catch (e) {
-      lastErr = e;
       const code = typeof e.code !== 'undefined' ? e.code : 'n/a';
       console.warn('[shim ziond error]', v.method, 'code=', code, 'msg=', e.message);
+      errors.push(e);
       // Continue to next variant on method/param related errors
     }
   }
-  throw lastErr || new Error('all variants failed');
+  // Prefer reporting a busy (-9) error if encountered, else the first error
+  const busy = errors.find(er => typeof er.code !== 'undefined' && Number(er.code) === -9);
+  if (busy) throw busy;
+  if (errors.length) throw errors[0];
+  throw new Error('all variants failed');
 }
 
 // Sleep helper
@@ -93,12 +97,10 @@ async function getBlockTemplateRobust(wal, reserve) {
     if (typeof reserve !== 'number' || reserve < 1) reserve = 4;
     if (reserve > 255) reserve = 255;
     const variants = [
+      // Keep only methods observed to exist in ziond; avoid underscore variant to prevent -32601 propagation
       { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
-      { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
       { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
-      { method: 'get_block_template', params: { address: wal, reserve_size: reserve } },
-      { method: 'getblocktemplate', params: [wal, reserve] },
-      { method: 'get_block_template', params: [wal, reserve] }
+      { method: 'getblocktemplate', params: [wal, reserve] }
     ];
     let lastErr;
     for (let attempt = 0; attempt < 10; attempt++) {

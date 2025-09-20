@@ -100,6 +100,22 @@ services:
     networks:
       - zion-seeds
 
+  walletd:
+    image: zion:production-fixed
+    container_name: zion-walletd
+    restart: unless-stopped
+    command: ["/usr/local/bin/zion_walletd", "--rpc-bind-port", "8070", "--rpc-bind-ip", "0.0.0.0", "--container-file", "/home/zion/.zion/pool.wallet", "--container-password", "testpass", "--generate-container", "--daemon-address", "zion-seed1:18081"]
+    environment:
+      - ZION_MODE=walletd
+    volumes:
+      - wallet-data:/home/zion/.zion
+    depends_on:
+      - seed1
+    networks:
+      zion-seeds:
+        aliases:
+          - walletd
+
   uzi-pool:
     image: zion:uzi-pool
     container_name: zion-uzi-pool
@@ -132,4 +148,6 @@ volumes:
   seed2-data:
     driver: local
   pool-data:
+    driver: local
+  wallet-data:
     driver: local

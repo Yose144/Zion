@@ -27,12 +27,18 @@ const ZION_RPC_URLS = URL_ENV.split(',').map(s => s.trim()).filter(Boolean);
 let CUR_URL_IDX = 0;
 function currentRpcUrl() { return ZION_RPC_URLS[CUR_URL_IDX % ZION_RPC_URLS.length]; }
 const PORT = parseInt(process.env.SHIM_PORT || '18089', 10);
+const GBT_CACHE_MS = parseInt(process.env.GBT_CACHE_MS || '12000', 10); // serve cached template up to 12s by default
+const MAX_BACKOFF_MS = parseInt(process.env.MAX_BACKOFF_MS || '8000', 10);
+
+// Cache of last successful block template (per wallet)
+let lastTpl = null; // { mapped, raw, height, when, wal }
+let lastErr = null; // { code, message, when }
 
 // Low-level JSON-RPC call to ziond; throws Error with optional .code
 async function zionRpc(method, params = {}) {
   const payload = { jsonrpc: '2.0', id: '0', method, params };
   try {
-    const { data } = await axios.post(currentRpcUrl(), payload, { timeout: 8000 });
+    const { data } = await axios.post(currentRpcUrl(), payload, { timeout: 15000 });
     if (data && data.error) {
       const err = new Error(data.error.message || 'ziond error');
       if (typeof data.error.code !== 'undefined') err.code = data.error.code;
@@ -98,26 +104,58 @@ async function getBlockTemplateRobust(wal, reserve) {
   return withGbtMutex(async () => {
     // Force small reserve size to reduce payload/pressure
     reserve = 4;
+
+    // If we have a recent cached template for the same wallet, serve it immediately
+    if (lastTpl && lastTpl.wal === wal) {
+      const age = Date.now() - lastTpl.when;
+      if (age <= GBT_CACHE_MS) {
+        console.log(`[shim] serving cached blocktemplate age=${age}ms height=${lastTpl.height}`);
+        return lastTpl.mapped; // already mapped to Monero-like shape
+      }
+    }
+
     const variants = [
       // Keep only methods observed to exist in ziond; avoid underscore variant to prevent -32601 propagation
       { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
       { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
       { method: 'getblocktemplate', params: [wal, reserve] }
     ];
-    let lastErr;
+    let lastErrLocal;
     for (let attempt = 0; attempt < 10; attempt++) {
       try {
-        return await tryVariants(variants);
+        const r = await tryVariants(variants);
+        // Map fields (template_blob, difficulty, height, seed_hash ... adjust as ziond provides)
+        const mapped = {
+          blocktemplate_blob: r.blocktemplate_blob || r.template || '',
+          difficulty: r.difficulty,
+          height: r.height,
+          prev_hash: r.prev_hash || r.previous || '',
+          seed_hash: r.seed_hash || '',
+          reserved_offset: r.reserved_offset || 0
+        };
+        // Update cache
+        lastTpl = { mapped, raw: r, height: r.height, when: Date.now(), wal };
+        lastErr = null;
+        return mapped;
       } catch (e) {
-        lastErr = e;
+        lastErrLocal = e;
+        lastErr = { code: typeof e.code !== 'undefined' ? Number(e.code) : undefined, message: e.message, when: Date.now() };
         if (typeof e.code !== 'undefined' && Number(e.code) === -9) {
           // Core is busy: back off and retry
-          const delay = Math.min(5000, 250 + attempt * 500);
+          const delay = Math.min(MAX_BACKOFF_MS, 250 + attempt * 500);
           console.warn(`[shim] getblocktemplate busy (-9), retrying in ${delay}ms (attempt ${attempt+1}/10)`);
           // rotate backend to spread load if multiple URLs configured
           if (ZION_RPC_URLS.length > 1) {
             CUR_URL_IDX = (CUR_URL_IDX + 1) % ZION_RPC_URLS.length;
             console.warn('[shim] rotating RPC backend to', currentRpcUrl());
+          }
+          // If we have a cached template for same wallet, serve it instead of hammering the daemon further
+          if (lastTpl && lastTpl.wal === wal) {
+            const age = Date.now() - lastTpl.when;
+            if (age <= GBT_CACHE_MS * 5) { // allow older cache while core is busy
+              console.warn(`[shim] serving cached blocktemplate during busy state, age=${age}ms height=${lastTpl.height}`);
+              return lastTpl.mapped;
+            }
           }
           await sleep(delay);
           continue;
@@ -126,7 +164,7 @@ async function getBlockTemplateRobust(wal, reserve) {
         break;
       }
     }
-    throw lastErr || new Error('getblocktemplate failed');
+    throw lastErrLocal || new Error('getblocktemplate failed');
   });
 }
 
@@ -167,16 +205,7 @@ async function handleSingle(id, method, params) {
         }
         // Sensible defaults
         if (typeof reserve === 'undefined' || reserve === null) reserve = 4;
-        const r = await getBlockTemplateRobust(wal, reserve);
-        // Map fields (template_blob, difficulty, height, seed_hash ... adjust as ziond provides)
-        const result = {
-          blocktemplate_blob: r.blocktemplate_blob || r.template || '',
-          difficulty: r.difficulty,
-          height: r.height,
-          prev_hash: r.prev_hash || r.previous || '',
-          seed_hash: r.seed_hash || '',
-          reserved_offset: r.reserved_offset || 0
-        };
+        const result = await getBlockTemplateRobust(wal, reserve);
         return { jsonrpc: '2.0', id, result };
       }
       // Submit block aliases
@@ -246,7 +275,16 @@ app.post('/json_rpc', async (req, res) => {
 
 // Simple healthcheck & info
 app.get('/', (_req, res) => {
-  res.json({ status: 'ok', proxy: currentRpcUrl(), backends: ZION_RPC_URLS });
+  const age = lastTpl ? (Date.now() - lastTpl.when) : null;
+  res.json({
+    status: 'ok',
+    proxy: currentRpcUrl(),
+    backends: ZION_RPC_URLS,
+    lastGbt: lastTpl ? { height: lastTpl.height, ageMs: age, when: lastTpl.when } : null,
+    lastError: lastErr || null,
+    gbtMutexHeld: gbtInFlight,
+    cacheMs: GBT_CACHE_MS
+  });
 });
 
 app.listen(PORT, () => {

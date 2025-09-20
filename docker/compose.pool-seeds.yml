@@ -8,6 +8,9 @@ networks:
 
 services:
   seed1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.zion-cryptonote.prod
     image: zion:production-fixed
     container_name: zion-seed1
     restart: unless-stopped
@@ -22,6 +25,9 @@ services:
       - zion-seeds
 
   seed2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.zion-cryptonote.prod
     image: zion:production-fixed
     container_name: zion-seed2
     restart: unless-stopped

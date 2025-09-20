@@ -7,7 +7,7 @@ networks:
 
 services:
   xmrig-test:
-    image: xmrig/xmrig:latest
+    image: xmrig/xmrig:6.21.3
     container_name: zion-xmrig-test
     restart: unless-stopped
     command: ["-c","/config/xmrig.config.json"]

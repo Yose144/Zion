@@ -7,6 +7,7 @@ set -euo pipefail
 
 SERVER_IP="${1:-}"
 SERVER_USER="${2:-root}"
+PUSH_LOCAL="${PUSH_LOCAL:-1}" # set to 0 to skip copying local changes
 
 if [[ -z "${SERVER_IP}" ]]; then
   echo "Usage: $0 <server-ip> [user]" >&2
@@ -17,7 +18,7 @@ REMOTE_BASE="/opt/zion"
 REMOTE_REPO_DIR="$REMOTE_BASE/Zion"
 REPO_URL="https://github.com/Yose144/Zion.git"
 
-echo "[ssh] Testing SSH connectivity to ${SERVER_USER}@${SERVER_IP}…"
+echo "[ssh] Testing SSH connectivity to ${SERVER_USER}@${SERVER_IP}..."
 if ! ssh -o BatchMode=yes -o ConnectTimeout=5 "${SERVER_USER}@${SERVER_IP}" 'echo SSH_OK' 2>/dev/null | grep -q SSH_OK; then
   echo "[ssh] Passwordless SSH not yet configured."
   echo "[ssh] Tip: run ./scripts/ssh-key-setup.sh ${SERVER_IP} ${SERVER_USER} to install your SSH key and enable multiplexing."
@@ -25,7 +26,7 @@ if ! ssh -o BatchMode=yes -o ConnectTimeout=5 "${SERVER_USER}@${SERVER_IP}" 'ech
   exit 2
 fi
 
-echo "[ssh] Preparing remote workspace at $REMOTE_REPO_DIR…"
+echo "[ssh] Preparing remote workspace at ${REMOTE_REPO_DIR}..."
 ssh "${SERVER_USER}@${SERVER_IP}" bash -s << 'REMOTE_CMDS'
 set -euo pipefail
 REMOTE_BASE="/opt/zion"
@@ -80,5 +81,31 @@ echo "[remote] Probing shim health:"
 curl -s http://localhost:18089/ || true
 echo
 REMOTE_CMDS
+
+# Optionally push local changes to remote (targeted files only), then rebuild seeds & shim
+if [[ "${PUSH_LOCAL}" == "1" ]]; then
+  echo "[ssh] Pushing local changes (targeted files) to remote..."
+  scp -q \
+    "${PWD}/zion-cryptonote/src/Rpc/RpcServer.cpp" \
+    "${SERVER_USER}@${SERVER_IP}:${REMOTE_REPO_DIR}/zion-cryptonote/src/Rpc/RpcServer.cpp" || true
+  scp -q \
+    "${PWD}/docker/compose.pool-seeds.yml" \
+    "${SERVER_USER}@${SERVER_IP}:${REMOTE_REPO_DIR}/docker/compose.pool-seeds.yml" || true
+  scp -q \
+    "${PWD}/adapters/zion-rpc-shim/server.js" \
+    "${SERVER_USER}@${SERVER_IP}:${REMOTE_REPO_DIR}/adapters/zion-rpc-shim/server.js" || true
+  scp -q \
+    "${PWD}/adapters/uzi-pool-config/config.json" \
+    "${SERVER_USER}@${SERVER_IP}:${REMOTE_REPO_DIR}/adapters/uzi-pool-config/config.json" || true
+
+  echo "[ssh] Rebuilding seeds and rpc-shim with local changes..."
+  ssh "${SERVER_USER}@${SERVER_IP}" bash -s << 'REMOTE_CMDS_2'
+set -euo pipefail
+cd /opt/zion/Zion
+docker compose -f docker/compose.pool-seeds.yml build --no-cache seed1 seed2 rpc-shim
+docker compose -f docker/compose.pool-seeds.yml up -d seed1 seed2 rpc-shim
+echo "[remote] Services restarted with local changes."
+REMOTE_CMDS_2
+fi
 
 echo "[ssh] Remote redeploy completed. You can follow logs with: ssh ${SERVER_USER}@${SERVER_IP} 'docker logs -f zion-uzi-pool'"

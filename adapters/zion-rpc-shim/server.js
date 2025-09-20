@@ -153,10 +153,14 @@ async function getBlockTemplateRobust(wal, reserve) {
     }
 
     const variants = [
-      // Keep only methods observed to exist in ziond; avoid underscore variant to prevent -32601 propagation
+      // Modern and legacy variants
       { method: 'getblocktemplate', params: { wallet_address: wal, reserve_size: reserve } },
       { method: 'getblocktemplate', params: { address: wal, reserve_size: reserve } },
-      { method: 'getblocktemplate', params: [wal, reserve] }
+      { method: 'getblocktemplate', params: [wal, reserve] },
+      // Legacy underscore variant used by some CryptoNote daemons
+      { method: 'get_block_template', params: { wallet_address: wal, reserve_size: reserve } },
+      { method: 'get_block_template', params: { address: wal, reserve_size: reserve } },
+      { method: 'get_block_template', params: [wal, reserve] }
     ];
     let lastErrLocal;
     for (let attempt = 0; attempt < 10; attempt++) {

@@ -1,0 +1,8 @@
+NAMES             IMAGE                   STATUS                          PORTS
+zion-xmrig-test   xmrig/xmrig:latest      Restarting (0) 10 seconds ago   
+zion-uzi-pool     zion:uzi-pool           Up 42 minutes                   0.0.0.0:3333->3333/tcp, [::]:3333->3333/tcp
+zion-seed2        zion:production-fixed   Up 42 minutes (healthy)         8070/tcp, 18080-18081/tcp
+zion-rpc-shim     zion:rpc-shim           Up 42 minutes                   0.0.0.0:18089->18089/tcp, [::]:18089->18089/tcp
+zion-seed1        zion:production-fixed   Up 42 minutes (healthy)         8070/tcp, 18080-18081/tcp
+zion-redis        redis:6-alpine          Up 42 minutes                   6379/tcp
+zion-production   zion:production         Up 8 hours (healthy)            0.0.0.0:8070->8070/tcp, [::]:8070->8070/tcp, 0.0.0.0:18080-18081->18080-18081/tcp, [::]:18080-18081->18080-18081/tcp

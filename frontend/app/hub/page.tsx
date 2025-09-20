@@ -15,6 +15,23 @@ export default function GenesisHub() {
 
   // Health
   const [health, setHealth] = useState<any>(null);
+  // Init from URL params (shareable links)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const p = new URLSearchParams(window.location.search);
+    const A = p.get('a');
+    const H = p.get('h');
+    const P = p.get('p');
+    const S = p.get('tls');
+    const L = p.get('algo');
+    if (A) setAddress(A);
+    if (H) setHost(H);
+    if (P) setPort(parseInt(P, 10) || ZION_POOL_PORT);
+    if (S) setTls(S === '1' || S === 'true');
+    if (L) setAlgo(L);
+  }, []);
+
+  // Periodic health fetch
   useEffect(() => {
     const load = async () => {
       try {
@@ -73,6 +90,44 @@ export default function GenesisHub() {
     } as const;
   }, [host, port, address, algo, tls, isValid]);
 
+  // One-click helpers
+  const shareLink = () => {
+    const url = new URL(window.location.href);
+    const p = url.searchParams;
+    p.set('a', address);
+    p.set('h', host);
+    p.set('p', String(port));
+    p.set('tls', tls ? '1' : '0');
+    p.set('algo', algo);
+    navigator.clipboard.writeText(url.toString());
+    alert('Odkaz zkopírován');
+  };
+
+  const download = (filename: string, content: string, mime = 'text/plain') => {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadJson = () => {
+    if (!isValid) return;
+    download('xmrig.json', JSON.stringify(jsonConfig, null, 2), 'application/json');
+  };
+
+  const downloadRunSh = () => {
+    if (!isValid) return;
+    const c = `#!/usr/bin/env bash\nset -euo pipefail\n\nxmrig \\\n+  --url ${tls ? 'stratum+ssl' : 'stratum+tcp'}://${host}:${port} \\\n+  --algo ${algo} \\\n+  --user ${address} \\\n+  --pass x \\\n+  --keepalive \\\n+  --rig-id HUB \\\n+  --donate-level 0\n`;
+    download('run-xmrig.sh', c);
+  };
+
+  const downloadRunBat = () => {
+    if (!isValid) return;
+    const c = `@echo off\nsetlocal enabledelayedexpansion\n\nxmrig.exe --url ${tls ? 'stratum+ssl' : 'stratum+tcp'}://${host}:${port} --algo ${algo} --user ${address} --pass x --keepalive --rig-id HUB --donate-level 0\npause\n`;
+    download('run-xmrig.bat', c, 'application/x-bat');
+  };
+
   return (
     <div style={{ maxWidth: 1080, margin: '32px auto', padding: 16 }}>
       <h1 style={{ color: '#00ff41' }}>ZION Genesis Hub</h1>
@@ -87,7 +142,18 @@ export default function GenesisHub() {
           <label>Algoritmus<select value={algo} onChange={e=>setAlgo(e.target.value)}><option value="rx/0">rx/0</option></select></label>
           <label>TLS <input type="checkbox" checked={tls} onChange={e=>setTls(e.target.checked)} /></label>
         </div>
-        <div style={{ marginTop: 8, color:'#666' }}>Shim: http://{ZION_HOST}:{ZION_SHIM_PORT} • Stratum: {host}:{port}</div>
+        <div style={{ marginTop: 8, display:'flex', gap:12, alignItems:'center' }}>
+          <span style={{ color:'#666' }}>Shim: http://{ZION_HOST}:{ZION_SHIM_PORT} • Stratum: {host}:{port}</span>
+          <span style={{ padding:'2px 8px', borderRadius: 12, background: health?.shim?.ok ? '#0a3' : '#533', color:'#fff' }}>
+            {health?.shim?.ok ? 'Shim OK' : 'Shim N/A'}
+          </span>
+        </div>
+        <div style={{ marginTop: 8, display:'flex', gap:8, flexWrap:'wrap' }}>
+          <button onClick={shareLink}>Sdílet link</button>
+          <button disabled={!isValid} onClick={downloadJson}>Stáhnout xmrig.json</button>
+          <button disabled={!isValid} onClick={downloadRunSh}>Stáhnout run-xmrig.sh</button>
+          <button disabled={!isValid} onClick={downloadRunBat}>Stáhnout run-xmrig.bat</button>
+        </div>
       </section>
 
       {/* Wallet */}

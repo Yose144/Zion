@@ -5,7 +5,7 @@
   "rxVariant": "rx/0",
   "coinUnits": 1000000000000,
   "addressPrefix": "Z",
-  "addressRegex": "^Z[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{94}$",
+  "addressRegex": "^[Za][123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{94}$",
   "explorer": "",
   "daemon": {
     "host": "seed1",

@@ -6,6 +6,10 @@ export default function Page() {
         Vítej. Toto je skeleton pro budoucí frontend. Pokračuj na{' '}
         <a href="/amenti" style={{ color:'#8aff9a' }}>Amenti Library</a>.
       </p>
+      <ul>
+        <li><a href="/wallet" style={{ color:'#8aff9a' }}>Wallet Tools (validace adresy, QR)</a></li>
+        <li><a href="/miner" style={{ color:'#8aff9a' }}>Miner Helper (XMRig příkaz)</a></li>
+      </ul>
     </section>
   )
 }

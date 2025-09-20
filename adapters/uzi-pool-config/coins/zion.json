@@ -8,8 +8,8 @@
   "addressRegex": "^Z[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{94}$",
   "explorer": "",
   "daemon": {
-    "host": "seed1",
-    "port": 18081,
+    "host": "zion-rpc-shim",
+    "port": 18089,
     "ssl": false,
     "timeout": 5000,
     "rpcPath": "/json_rpc"

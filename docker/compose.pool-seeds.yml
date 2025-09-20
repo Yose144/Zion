@@ -104,7 +104,8 @@ services:
     image: zion:production-fixed
     container_name: zion-walletd
     restart: unless-stopped
-    command: ["/usr/local/bin/zion_walletd", "--rpc-bind-port", "8070", "--rpc-bind-ip", "0.0.0.0", "--container-file", "/home/zion/.zion/pool.wallet", "--container-password", "testpass", "--generate-container", "--daemon-address", "zion-seed1:18081"]
+    entrypoint: ["/usr/local/bin/zion_walletd"]
+    command: ["--bind-address", "0.0.0.0", "--bind-port", "8070", "--container-file", "/home/zion/.zion/pool.wallet", "--container-password", "testpass", "--daemon-address", "zion-seed1", "--daemon-port", "18081"]
     environment:
       - ZION_MODE=walletd
     volumes:

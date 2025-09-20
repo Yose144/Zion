@@ -18,7 +18,9 @@ REPO_URL="https://github.com/Yose144/Zion.git"
 
 echo "[ssh] Testing SSH connectivity to ${SERVER_USER}@${SERVER_IP}…"
 if ! ssh -o BatchMode=yes -o ConnectTimeout=5 "${SERVER_USER}@${SERVER_IP}" 'echo SSH_OK' 2>/dev/null | grep -q SSH_OK; then
-  echo "SSH not available without password. If you need password mode, use deploy-ssh.sh or setup ssh-copy-id." >&2
+  echo "[ssh] Passwordless SSH not yet configured."
+  echo "[ssh] Tip: run ./scripts/ssh-key-setup.sh ${SERVER_IP} ${SERVER_USER} to install your SSH key and enable multiplexing."
+  echo "[ssh] Or use password-based deployment: ./scripts/deploy-ssh-pool.sh ${SERVER_IP} ${SERVER_USER}" >&2
   exit 2
 fi
 

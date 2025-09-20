@@ -1,5 +1,17 @@
 # MAITREYA (Windows 11, Ryzen 5 3600) — Mining + Connectivity Log
 
+## Quick Run
+- VS Code Tasks:
+	- "MAITREYA: Start Tunnel"
+	- "MAITREYA: Start Miner"
+	- "MAITREYA: Check Shim Health"
+- PowerShell (alternativa):
+```
+Set-Location D:\Zion
+./scripts/ssh-tunnel-maitreya.ps1 start
+.\n+mining\platforms\windows\xmrig-6.21.3\xmrig.exe -c .\test-xmrig.json
+```
+
 Date: 2025-09-20
 Host: MAITREYA (user anaha)
 OS: Windows 11 (PowerShell 5.1)
@@ -34,3 +46,25 @@ Rig-ID: windows-ryzen-1
 - Keep SSH tunnel running when mining.
 - Open provider firewall for 3333/18089 to remove tunnel dependency.
 - Monitor pool/shim logs for new heights and accepted shares when seed peers become reachable.
+
+---
+
+## 2025-09-20T Local Mining Update (Tunnel + XMRig)
+
+- Tunnel: started with `scripts/ssh-tunnel-maitreya.ps1 start` mapping `127.0.0.1:3333` and `127.0.0.1:18089` to server 91.98.122.165.
+- Connectivity checks:
+	- `Test-NetConnection 127.0.0.1 -Port 3333` => True
+	- `Test-NetConnection 127.0.0.1 -Port 18089` => True
+- XMRig config snapshot: `mining/platforms/windows/xmrig-6.21.3/config-zion.json`
+	- url: `stratum+tcp://127.0.0.1:3333`
+	- algo: `rx/0`
+	- user: ajmrDtnSJCqchjF3wuiceJRCpAumA3wGLhQjtzf7B9uELFYrbtURHTFabiC8RmVbSkPGznaPhsehxYJvwcSGcwXV495Ytpr7wf
+	- rig-id: MAITREYA-Ryzen-1
+- Commands used:
+	- Start tunnel:
+		- `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File d:\Zion\scripts\ssh-tunnel-maitreya.ps1 start`
+	- Start miner (helper):
+		- `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File d:\Zion\mining\start-mining-windows.ps1 -PoolHost 127.0.0.1 -PoolPort 3333 -RigId MAITREYA-Ryzen-1`
+	- Start miner (direct):
+		- `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'd:\Zion\mining\platforms\windows\xmrig-6.21.3\xmrig.exe' -ArgumentList '--config=\"d:\Zion\mining\platforms\windows\xmrig-6.21.3\config-zion.json\"' -WorkingDirectory 'd:\Zion\mining\platforms\windows\xmrig-6.21.3' -WindowStyle Normal"`
+- Results: stratum reachable via tunnel; mining running locally; shares reported as accepted in miner output.
